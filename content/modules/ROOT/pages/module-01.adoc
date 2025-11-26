@@ -1,329 +1,337 @@
-= Lab Guide: Configuring Ansible Lightspeed in VS Code
+はい、承知いたしました。提供されたAsciiDocテキストを日本語に翻訳します。
+
+---
+
+= ラボガイド: VS CodeでのAnsible Lightspeedの設定
 :doctype: book
 :notoc:
-:toc-title: Table of Contents
+:toc-title: 目次
 :nosectnums:
 :icons: font
 
-_A guide to enabling and activating Ansible Lightspeed within the Ansible Visual Studio Code extension._
+_Ansible Visual Studio Code拡張機能内でAnsible Lightspeedを有効化し、アクティベートするためのガイドです。_
 
 ---
 
-== Introduction and Lab Setup
+== はじめに - ラボのセットアップ
 
 [IMPORTANT]
 ====
-**Important Note About This Lab**
+**このラボに関する重要な注意点**
 
-IBM watsonx Code Assistant models are continuously updated and improved. As a result, some specific task generation challenges in this lab may not work exactly as described due to model updates. This is expected behavior.
+IBM watsonx Code Assistantモデルは継続的に更新され、改善されています。その結果、モデルの更新により、このラボで説明されている特定のタスク生成の課題が、説明どおりに機能しない場合があります。これは予期される動作です。
 
-**The primary goal of this lab is to help you understand the key features of Ansible Lightspeed, including:**
+**このラボの主な目的は、Ansible Lightspeedの主要な機能、特に以下について理解を深めることです。**
 
-* **Playbook Generation** - Generating entire playbooks from natural language prompts
-* **Task Generation** - Generating individual tasks or multiple tasks at once
-* **Training Matches** - Understanding the transparency of AI suggestions
-* **Best Practices** - Learning how Lightspeed incorporates Ansible best practices
+* **プレイブック生成** - 自然言語のプロンプトからプレイブック全体を生成する
+* **タスク生成** - 個別のタスク、または複数のタスクを一度に生成する
+* **トレーニングの一致** - AIサジェスチョンの透明性を理解する
+* **ベストプラクティス** - LightspeedがどのようにAnsibleのベストプラクティスを取り入れているかを学ぶ
 
-**If a specific prompt doesn't generate suggestions as expected:**
+**特定のプロンプトが期待どおりにサジェスチョンを生成しない場合:**
 
-* Try **playbook generation** instead of task generation (use the "Generate a playbook" button to create the entire playbook from a prompt)
-* Experiment with different prompt variations to see what gives you the best suggestions
-* Simplify complex multi-task prompts into separate single-task prompts
-* The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
+* タスク生成ではなく**プレイブック生成**を試す（「Generate a playbook」ボタンを使用してプロンプトからプレイブック全体を作成する）
+* 最適なサジェスチョンを得るために、さまざまなプロンプトのバリエーションを試す
+* 複雑なマルチタスクのプロンプトを、個別のシングルのタスクのプロンプトに単純化する
+* 学習目標は変わりません。AIアシストによるAnsible開発の取り組み方を理解することです。
 ====
 
-In this lab, you will configure Ansible Lightspeed in Visual Studio Code. You will sign up for the Ansible Lightspeed trial service using your own Red Hat account.
+このラボでは、Visual Studio CodeでAnsible Lightspeedを設定します。ご自身のRed Hatアカウントを使用して、Ansible Lightspeedトライアルサービスにサインアップします。
 
-The examples used in this lab are available in the link:https://github.com/ansible/ansible-lightspeed-demos[Ansible Lightspeed Demo repository].
+このラボで使用される例は、link:[https://github.com/ansible/ansible-lightspeed-demos](https://github.com/ansible/ansible-lightspeed-demos)[Ansible Lightspeed Demoリポジトリ]で入手可能です。
 
-Your lab environment provides access to multiple services via the tabs at the top:
+お客様のラボ環境では、上部のタブから複数のサービスにアクセスできます。
 
-* **VS Code** - Visual Studio Code development environment with Ansible extension pre-installed
-* **Ansible Automation Platform** - Automation controller for running automation jobs
-* **Cockpit** - Cockpit web console for system monitoring (after setup in Module 2)
-* **PGAdmin** - PostgreSQL administration interface (after setup in Module 3)
-* **AWS/Azure** - Cloud account credentials for AWS and Azure resources (used in later challenges)
-* **gitea** - Internal Git repository hosting the lab playbooks
+* **VS Code** - Ansible拡張機能がプリインストールされたVisual Studio Code開発環境
+* **Ansible Automation Platform** - 自動化ジョブを実行するためのAutomation Controller
+* **Cockpit** - システム監視用のCockpitウェブコンソール（モジュール2でのセットアップ後）
+* **PGAdmin** - PostgreSQL管理インターフェース（モジュール3でのセットアップ後）
+* **AWS/Azure** - AWSおよびAzureリソースのクラウドアカウント認証情報（後の課題で使用）
+* **gitea** - ラボのプレイブックをホストする内部Gitリポジトリ
 
 [IMPORTANT]
 ====
-**Lab Credentials**
+**ラボの認証情報**
 
-Different services in this lab use different credentials:
+このラボの異なるサービスでは、異なる認証情報を使用します。
 
 * **Automation Controller:** `admin` / `ansible123!`
-* **Gitea (Git Repository):** `gitea` / `gitea`
-* **VS Code:** Access via browser tab (no login required)
+* **Gitea (Gitリポジトリ):** `gitea` / `gitea`
+* **VS Code:** ブラウザタブ経由でアクセス（ログインは不要）
 ====
 
 ---
 
-== Task 1: Sign Up for Ansible Lightspeed Trial
+== タスク1: Ansible Lightspeedトライアルへのサインアップ
 
-Before using Ansible Lightspeed, you need to sign up for a trial subscription. This requires creating a Red Hat account and subscribing to both Ansible Automation Platform and Ansible Lightspeed trials.
+Ansible Lightspeedを使用する前に、トライアルサブスクリプションにサインアップする必要があります。これには、Red Hatアカウントを作成し、Ansible Automation PlatformとAnsible Lightspeedの両方のトライアルにサブスクライブする必要があります。
 
 [IMPORTANT]
 ====
-**If you have previously completed this lab:**
+**このラボを以前に完了している場合:**
 
-* **Within 60-day trial window:** If you completed this lab within the last 60 days, your trial is still active. Use the same Red Hat account and skip to Task 2.
+* **60日間のトライアル期間内の場合:** 過去60日以内にこのラボを完了した場合、トライアルはまだ有効です。同じRed Hatアカウントを使用し、タスク2にスキップしてください。
 
-* **After 60-day trial window:** If your trial has expired, you will need to create a **new Red Hat account using a different email address** to access new AAP and Lightspeed trials. Each account can only access the trial once.
+* **60日間のトライアル期間を過ぎている場合:** トライアルの有効期限が切れている場合は、新しいAAPおよびLightspeedトライアルにアクセスするために、**別のメールアドレスを使用して新しいRed Hatアカウント**を作成する必要があります。各アカウントはトライアルに一度しかアクセスできません。
 
-* **If you have an AAP subscription:** If your email is already attached to a paid AAP subscription, you can still access the Ansible Lightspeed trial with that account.
+* **AAPサブスクリプションをお持ちの場合:** お使いのメールがすでに有償のAAPサブスクリプションに紐づいている場合でも、そのアカウントでAnsible Lightspeedトライアルにアクセスできます。
 
-* **No available email addresses:** Unfortunately, there is no workaround if you do not have access to a new email address. Each Red Hat account can only activate the trial one time.
+* **利用可能なメールアドレスがない場合:** 残念ながら、新しいメールアドレスがない場合の回避策はありません。各Red Hatアカウントはトライアルを一度しかアクティベートできません。
 ====
 
 [NOTE]
 ====
-If you already have a Red Hat account with active Ansible Lightspeed trial access, you can skip to Task 2.
+Ansible Lightspeedトライアルへのアクティブなアクセス権を持つRed Hatアカウントをすでにお持ちの場合は、タスク2にスキップできます。
 ====
 
-=== Step 1: Create a Red Hat Account
+=== ステップ1: Red Hatアカウントの作成
 
-.   **Visit the Red Hat account creation page** at link:https://www.redhat.com/wapps/ugc/register.html[access.redhat.com]
+.   **Red Hatアカウント作成ページにアクセスします** link:[https://www.redhat.com/wapps/ugc/register.html](https://www.redhat.com/wapps/ugc/register.html)[access.redhat.com]
 
-.   **Complete the registration form** with your information and verify your email address.
+.   ご自身の情報で**登録フォームを完了し**、メールアドレスを確認します。
 
-=== Step 2: Subscribe to Ansible Automation Platform Trial
+=== ステップ2: Ansible Automation Platformトライアルへのサブスクライブ
 
-.   **Visit the Ansible Automation Platform trial page** at link:https://www.redhat.com/en/technologies/management/ansible/trial[https://www.redhat.com/en/technologies/management/ansible/trial]
+.   **Ansible Automation Platformトライアルページにアクセスします** link:[https://www.redhat.com/en/technologies/management/ansible/trial](https://www.redhat.com/en/technologies/management/ansible/trial)[[https://www.redhat.com/en/technologies/management/ansible/trial](https://www.redhat.com/en/technologies/management/ansible/trial)]
 
-.   **Log in** with your newly created Red Hat account credentials.
+.   新しく作成したRed Hatアカウントの認証情報で**ログインします**。
 
-.   **Complete the trial signup** process for Ansible Automation Platform.
+.   Ansible Automation Platformの**トライアルサインアッププロセスを完了します**。
 
 [IMPORTANT]
 ====
-You must have an active Ansible Automation Platform trial subscription before you can access the Ansible Lightspeed trial.
+Ansible Lightspeedトライアルにアクセスする前に、アクティブなAnsible Automation Platformトライアルサブスクリプションが必要です。
 ====
 
-=== Step 3: Enable Ansible Lightspeed Trial
+=== ステップ3: Ansible Lightspeedトライアルの有効化
 
-You will enable the Ansible Lightspeed trial directly from VS Code as part of the connection process in Task 2.
+タスク2での接続プロセスの一部として、VS Codeから直接Ansible Lightspeedトライアルを有効にします。
 
 ---
 
-== Task 2: Enable and Connect Ansible Lightspeed in VS Code
+== タスク2: VS CodeでのAnsible Lightspeedの有効化と接続
 
-Now you will enable Ansible Lightspeed in VS Code and connect it to the trial service.
+次に、VS CodeでAnsible Lightspeedを有効にし、トライアルサービスに接続します。
 
-=== Step 1: Open VS Code and Enable Lightspeed Settings
+=== ステップ1: VS Codeを開き、Lightspeed設定を有効にする
 
-.   **Access VS Code:**
-    * VS Code opens automatically as the first tab when you start the lab
-    * If you need to reopen it, click the **VS Code** tab at the top of your lab environment
-    * Note: Clicking the VS Code tab may open it in a new browser tab
-
-[IMPORTANT]
-====
-**Work in a new browser tab:** For the best experience with Ansible Lightspeed features, **click the VS Code tab to open it in a new browser tab** rather than using the inline embedded window.
-====
-
-.   **Navigate to the Ansible extension settings:**
-    * Click the **Extensions** icon on the left sidebar
-    * Find the **Ansible** extension
-    * Click the gear icon (⚙️)
-    * Select **Extension Settings**
-
-.   **Enable Lightspeed features:**
-    * Click the **Workspace** tab
-    * Type `lightspeed` in the search bar to filter settings
-    * Check both boxes:
-      ** Enable Ansible Lightspeed
-      ** Enable Ansible Lightspeed with Watson Code Assistant inline suggestions
+.   **VS Codeにアクセスします:**
+    * ラボを開始すると、VS Codeが最初のタブとして自動的に開きます
+    * 再度開く必要がある場合は、ラボ環境の上部にある**VS Code**タブをクリックします
+    * 注: VS Codeタブをクリックすると、新しいブラウザタブで開く場合があります
 
 [IMPORTANT]
 ====
-Please ensure you configure these settings in the VS Code **Workspace** tab, not the User tab.
+**新しいブラウザタブで作業:** Ansible Lightspeedの機能を最大限に活用するには、インラインの埋め込みウィンドウを使用するのではなく、**VS Codeタブをクリックして新しいブラウザタブで開いてください**。
+====
+
+.   **Ansible拡張機能の設定に移動します:**
+    * 左側のサイドバーにある**Extensions**アイコンをクリックします
+    * **Ansible**拡張機能を見つけます
+    * 歯車アイコン（⚙️）をクリックします
+    * **Extension Settings**を選択します
+
+.   **Lightspeed機能を有効にします:**
+    * **Workspace**タブをクリックします
+    * 検索バーに `lightspeed` と入力して設定をフィルタリングします
+    * 両方のチェックボックスをオンにします:
+      ** Enable Ansible Lightspeed
+      ** Enable Ansible Lightspeed with Watson Code Assistant inline suggestions
+
+[IMPORTANT]
+====
+これらの設定は、Userタブではなく、VS Codeの**Workspace**タブで設定するようにしてください。
 ====
 
 [NOTE]
 ====
-If VS Code prompts you to **Reload Window** to update the extensions, click the **Reload Window** button to apply the changes.
+VS Codeが拡張機能の更新のために**Reload Window**を促す場合は、**Reload Window**ボタンをクリックして変更を適用してください。
 ====
 
-=== Step 2: Connect to Ansible Lightspeed Service
+=== ステップ2: Ansible Lightspeedサービスへの接続
 
-.   **Click the Ansible extension icon** on the left sidebar in VS Code.
+.   VS Codeの左側のサイドバーにある**Ansible拡張機能のアイコン**をクリックします。
 
-.   **Click the Connect button** in the Ansible Lightspeed section.
+.   Ansible Lightspeedセクションの**Connect**ボタンをクリックします。
 
-.   **Follow the authentication prompts:**
-    * VS Code will show pop-ups guiding you through authentication
-    * Click **Allow** when prompted to open the authentication page
-    * Click **Open** to launch your browser
+.   **認証プロンプトに従います:**
+    * VS Codeが認証をガイドするポップアップを表示します
+    * 認証ページを開くように促されたら**Allow**をクリックします
+    * ブラウザを起動するために**Open**をクリックします
 
-.   **Log in with your Red Hat account:**
-    * A browser window will open to the Red Hat login page
-    * Enter your Red Hat account credentials (the account you created in Task 1)
-    * Click **Log In**
+.   **Red Hatアカウントでログインします:**
+    * ブラウザウィンドウがRed Hatログインページに開きます
+    * Red Hatアカウントの認証情報（タスク1で作成したアカウント）を入力します
+    * **Log In**をクリックします
 
-.   **Authorize VS Code to access Ansible Lightspeed:**
-    * After logging in, you'll see an authorization page
-    * Click **Authorize** to grant VS Code access
+.   **VS CodeにAnsible Lightspeedへのアクセスを承認します:**
+    * ログイン後、承認ページが表示されます
+    * VS Codeにアクセス権を付与するために**Authorize**をクリックします
 
-.   **Complete the authentication redirect:**
-    * The browser will redirect back to VS Code
-    * Click **Open** in the VS Code prompt to complete the connection
-    * You should now see `Logged in as <your-email>` in the Ansible extension sidebar
+.   **認証のリダイレクトを完了します:**
+    * ブラウザがVS Codeにリダイレクトされます
+    * 接続を完了するために、VS Codeのプロンプトで**Open**をクリックします
+    * これで、Ansible拡張機能のサイドバーに `Logged in as <your-email>` と表示されるはずです
 
-.   **Start the Ansible Lightspeed trial:**
-    * In the Ansible extension sidebar (left side), look for the **Start Trial** button in the Ansible Lightspeed section
-    * Click the **Start Trial** button
-    * A browser window will open with the Ansible Lightspeed trial terms and conditions
-    * **Read and accept the terms and conditions**
-    * After accepting, the browser will confirm your trial is activated
+.   **Ansible Lightspeedトライアルを開始します:**
+    * Ansible拡張機能サイドバー（左側）のAnsible Lightspeedセクションで、**Start Trial**ボタンを探します
+    * **Start Trial**ボタンをクリックします
+    * Ansible Lightspeedトライアルの利用規約が表示されたブラウザウィンドウが開きます
+    * **利用規約を読み、同意します**
+    * 同意後、ブラウザがトライアルがアクティベートされたことを確認します
 
-.   **Refresh and verify the trial is enabled:**
-    * Return to VS Code
-    * In the Ansible Lightspeed section of the Ansible extension sidebar, click the **refresh icon** (circular arrow)
-    * You should now see that your Ansible Lightspeed trial is enabled and active
-    * A confirmation notification may appear in the bottom right corner
+.   **トライアルが有効になっていることを更新して確認します:**
+    * VS Codeに戻ります
+    * Ansible拡張機能サイドバーのAnsible Lightspeedセクションで、**更新アイコン**（円形の矢印）をクリックします
+    * これで、Ansible Lightspeedトライアルが有効でアクティブであることが表示されるはずです
+    * 右下隅に確認通知が表示される場合があります
 
 [IMPORTANT]
 ====
-**The Ansible Lightspeed trial is NOT automatically activated after AAP trial signup.** You must explicitly click **Start Trial** in VS Code and accept the terms and conditions for the trial to become active.
+**Ansible Lightspeedトライアルは、AAPトライアルサインアップ後に自動的にはアクティベートされません。** トライアルをアクティブにするには、VS Codeで明示的に**Start Trial**をクリックし、利用規約に同意する必要があります。
 ====
 
 [TIP]
 ====
-If you receive a timeout warning during authentication, simply click **Connect** in the Ansible extension again and repeat the authorization steps.
+認証中にタイムアウトの警告が表示された場合は、Ansible拡張機能で**Connect**を再度クリックし、認証手順を繰り返してください。
 ====
 
 ---
 
-== Task 3: Understanding Playbook Generation (Optional)
+== タスク3: プレイブック生成の理解（オプション）
 
-Now that you've set up Ansible Lightspeed, let's explore the **playbook generation** feature. This is one of the most powerful features of Ansible Lightspeed, allowing you to create entire playbooks from natural language prompts.
+Ansible Lightspeedを設定したので、次に**プレイブック生成**機能を見てみましょう。これはAnsible Lightspeedの最も強力な機能の1つであり、自然言語のプロンプトからプレイブック全体を作成できます。
 
 [IMPORTANT]
 ====
-**Work in a new browser tab:** Ansible Lightspeed may not work correctly in the inline VS Code window embedded in the lab interface. **Always click the VS Code tab to open it in a new browser tab** for the best experience with Lightspeed features.
+**新しいブラウザタブで作業:** Ansible Lightspeedは、ラボインターフェースに埋め込まれたインラインのVS Codeウィンドウでは正しく機能しない場合があります。Lightspeed機能を最大限に活用するために、**必ずVS Codeタブをクリックして新しいブラウザタブで開いてください**。
 ====
 
-=== Step 1: Access Playbook Generation
+=== ステップ1: プレイブック生成にアクセスする
 
-.   **Open the playbook generation interface:**
+.   **プレイブック生成インターフェースを開きます:**
 +
-    a. On the left side of VS Code, click the **Ansible** icon (looks like an "A")
+    a. VS Codeの左側にある**Ansible**アイコン（「A」のように見えます）をクリックします
 +
-    b. In the **Ansible Lightspeed** section, click the **Generate a playbook** button
+    b. **Ansible Lightspeed**セクションで、**Generate a playbook**ボタンをクリックします
 +
-       * Note: This button only appears after you have successfully logged in and activated your trial
+       * 注: このボタンは、ログインしてトライアルを正常にアクティベートした後にのみ表示されます
 
-=== Step 2: Enter Your Prompt
+=== ステップ2: プロンプトを入力する
 
-.   **Describe what you want to achieve:**
+.   **達成したいことを記述します:**
 +
-    a. A new screen will open with a text box labeled "Describe what you want to achieve in natural language"
+    a. 「Describe what you want to achieve in natural language（自然言語で達成したいことを記述してください）」というラベルの付いたテキストボックスがある新しい画面が開きます
 +
-    b. Enter a description of what you want your playbook to do
+    b. プレイブックに実行させたいことの説明を入力します
 +
-    c. Click the **Analyze** button
+    c. **Analyze**ボタンをクリックします
 
 [TIP]
 ====
-**Writing effective prompts:**
+**効果的なプロンプトの書き方:**
 
-* You do NOT need to include phrases like "Generate a playbook" or "Create a playbook" - the AI knows it's creating playbooks
-* Just describe what you want your playbook to do in plain language
-* Be specific about the tasks you want to accomplish
+* 「Generate a playbook」や「Create a playbook」のようなフレーズを含める**必要はありません** - AIはプレイブックを作成していることを知っています
+* プレイブックに実行させたいことを平易な言葉で記述するだけです
+* 達成したいタスクについて具体的に記述します
 
-**Example prompts:**
+**プロンプトの例:**
 
-* `for rhel hosts with sudo, install and configure Apache web server with SSL enabled`
-* `configure PostgreSQL database on CentOS hosts and create a backup user`
+* `for rhel hosts with sudo, install and configure Apache web server with SSL enabled` (sudoを持つrhelホスト用に、SSLを有効にしてApacheウェブサーバーをインストールおよび設定する)
+* `configure PostgreSQL database on CentOS hosts and create a backup user` (CentOSホストでPostgreSQLデータベースを設定し、バックアップユーザーを作成する)
 
-You'll also see example prompts listed in the interface that you can use for inspiration.
+インターフェースには、インスピレーションとして使用できるプロンプトの例も表示されます。
 ====
 
-=== Step 3: Review and Edit the Outline
+=== ステップ3: アウトラインのレビューと編集
 
-.   **Review the suggested playbook structure:**
+.   **提案されたプレイブックの構造をレビューします:**
 +
-    a. After clicking Analyze, Ansible Lightspeed will show an outline of the playbook
+    a. Analyzeをクリックすると、Ansible Lightspeedがプレイブックのアウトラインを表示します
 +
-    b. The outline shows the suggested steps for your playbook
+    b. アウトラインには、プレイブックの提案された手順が表示されます
 +
-    c. **The outline is editable** - you can modify the steps as needed to match your requirements
+    c. **アウトラインは編集可能**です - 要件に合わせて必要に応じて手順を変更できます
 +
-    d. Review the outline and make any adjustments if necessary
+    d. アウトラインをレビューし、必要に応じて調整を加えます
 
-.   **Generate the playbook:**
+.   **プレイブックを生成します:**
 +
-    a. Once you're satisfied with the outline, click the **Continue** button
+    a. アウトラインに満足したら、**Continue**ボタンをクリックします
 +
-    b. Ansible Lightspeed will generate the complete playbook based on the outline
+    b. Ansible Lightspeedがアウトラインに基づいて完全なプレイブックを生成します
 
-=== Step 4: Save the Playbook
+=== ステップ4: プレイブックの保存
 
-.   **Save your generated playbook:**
+.   **生成されたプレイブックを保存します:**
 +
-    a. The playbook will open as "Untitled" in the editor
+    a. プレイブックはエディターに「Untitled」として開きます
 +
-    b. Press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac) to save the file
+    b. `CTRL+S`（Windows/Linux）または`CMD+S`（Mac）を押してファイルを保存します
 +
-    c. Give your playbook a descriptive name ending with `.yml` (for example: `install_apache.yml`, `configure_database.yml`)
+    c. プレイブックに`.yml`で終わるわかりやすい名前を付けます（例: `install_apache.yml`、`configure_database.yml`）
 +
-    d. Choose a location to save it (the `playbooks/` directory is recommended for organization)
+    d. 保存場所を選択します（整理のために `playbooks/` ディレクトリが推奨されます）
 
 [NOTE]
 ====
-You can experiment with playbook generation now, or proceed to the next module where you'll use both task generation and playbook generation features in hands-on challenges.
+ここでプレイブック生成を試すこともできますし、次のモジュールに進んで、実践的な課題でタスク生成とプレイブック生成の両方の機能を使用することもできます。
 ====
 
 ---
 
-== Next Steps
+== 次のステップ
 
-Congratulations! You have successfully configured Ansible Lightspeed in VS Code. You are now ready to start generating Ansible content using AI-powered suggestions.
+おめでとうございます！VS CodeでAnsible Lightspeedの設定に成功しました。これで、AIを活用したサジェスチョンを使用してAnsibleコンテンツの生成を開始する準備ができました。
 
 [IMPORTANT]
 ====
-**Do not skip this module!** Without completing the Ansible Lightspeed setup, you will not be able to get AI suggestions in the subsequent challenges.
+**このモジュールをスキップしないでください！** Ansible Lightspeedのセットアップを完了しないと、以降の課題でAIサジェスチョンを取得できません。
 ====
 
-Press the button below to proceed to the next module where you will use Ansible Lightspeed to deploy Cockpit.
+下のボタンを押して、Ansible Lightspeedを使用してCockpitをデプロイする次のモジュールに進んでください。
 
 ---
 
-== Additional Resources
+== 追加リソース
 
-* link:https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed[More information] on Red Hat Ansible Lightspeed with IBM watsonx Code Assistant
-* link:https://www.redhat.com/en/technologies/management/ansible/trial[Ansible Automation Platform Trial] - Sign up for AAP trial
-* link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[Ansible Lightspeed Documentation]
-* link:https://www.youtube.com/ansibleautomation[Red Hat Ansible Automation Platform YouTube channel]
+* IBM watsonx Code Assistantを使用したRed Hat Ansible Lightspeedに関するlink:[https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed)[詳細情報]
+* link:[https://www.redhat.com/en/technologies/management/ansible/trial](https://www.redhat.com/en/technologies/management/ansible/trial)[Ansible Automation Platformトライアル] - AAPトライアルへのサインアップ
+* link:[https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant)[Ansible Lightspeedドキュメント]
+* link:[https://www.youtube.com/ansibleautomation](https://www.youtube.com/ansibleautomation)[Red Hat Ansible Automation Platform YouTubeチャンネル]
 
 ---
 
-== Troubleshooting
+== トラブルシューティング
 
-=== Common Issues
+=== 一般的な問題
 
-**Issue: "I'm logged in but don't see the Start Trial button"**
+**問題: 「ログインしているのに、Start Trialボタンが表示されない」**
 
-* Solution: Make sure you have completed the AAP trial signup first. The Start Trial button only appears if you have an active AAP trial subscription. Try clicking the refresh icon in the Ansible Lightspeed section.
+* 解決策: まずAAPトライアルへのサインアップが完了していることを確認してください。Start Trialボタンは、アクティブなAAPトライアルサブスクリプションがある場合にのみ表示されます。Ansible Lightspeedセクションの更新アイコンをクリックしてみてください。
 
-**Issue: "I clicked Start Trial but my trial still shows as not enabled"**
+**問題: 「Start Trialをクリックしたが、トライアルがまだ有効になっていないと表示される」**
 
-* Solution: After accepting the terms and conditions in the browser, return to VS Code and click the **refresh icon** (circular arrow) in the Ansible Lightspeed section of the Ansible extension sidebar.
+* 解決策: ブラウザで利用規約に同意した後、VS Codeに戻り、Ansible拡張機能サイドバーのAnsible Lightspeedセクションにある**更新アイコン**（円形の矢印）をクリックしてください。
 
-**Issue: "I don't see the option to enable Ansible Lightspeed trial"**
+**問題: 「Ansible Lightspeedトライアルを有効にするオプションが表示されない」**
 
-* Solution: Ensure you have completed the Ansible Automation Platform trial signup first. The Lightspeed trial requires an active AAP trial subscription.
+* 解決策: まずAnsible Automation Platformトライアルへのサインアップが完了していることを確認してください。Lightspeedトライアルには、アクティブなAAPトライアルサブスクリプションが必要です。
 
-**Issue: "Connection times out during authentication"**
+**問題: 「認証中に接続がタイムアウトする」**
 
-* Solution: Click **Connect** in the Ansible extension again and repeat the authorization steps. Make sure pop-ups are not blocked in your browser.
+* 解決策: Ansible拡張機能で**Connect**を再度クリックし、認証手順を繰り返してください。ブラウザでポップアップがブロックされていないことを確認してください。
 
-**Issue: "I already have a Red Hat account but no AAP trial"**
+**問題: 「すでにRed Hatアカウントを持っているが、AAPトライアルがない」**
 
-* Solution: Visit link:https://www.redhat.com/en/technologies/management/ansible/trial[the AAP trial page] and sign up using your existing Red Hat account.
+* 解決策: link:[https://www.redhat.com/en/technologies/management/ansible/trial](https://www.redhat.com/en/technologies/management/ansible/trial)[AAPトライアルページ]にアクセスし、既存のRed Hatアカウントを使用してサインアップしてください。
 
-**Issue: "My 60-day trial has expired and I don't have another email address"**
+**問題: 「60日間のトライアルが期限切れになり、別のメールアドレスがない」**
 
-* Solution: Unfortunately, there is no workaround. Each Red Hat account can only activate the trial one time. You would need a different email address to create a new account.
+* 解決策: 残念ながら、回避策はありません。各Red Hatアカウントはトライアルを一度しかアクティベートできません。新しいアカウントを作成するには、別のメールアドレスが必要です。
 
-If you encounter other issues, please check the link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[official documentation] or contact Red Hat support.
+その他の問題が発生した場合は、link:[https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant)[公式ドキュメント]を確認するか、Red Hatサポートにお問い合わせください。
+
+---
+
+他にこのテキストに関して翻訳が必要な箇所はありますか？
