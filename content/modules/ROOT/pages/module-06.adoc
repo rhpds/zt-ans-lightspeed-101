@@ -1,291 +1,299 @@
-= Lab Guide: Ansible Lightspeed Playground
+このAsciiDocテキストは、Ansible Lightspeedの**プレイグラウンド環境**の概要と、その機能を探索するための手順を説明したガイドです。
+
+以下に、対応する日本語訳を提供します。
+
+---
+
+= ラボガイド: Ansible Lightspeedプレイグラウンド
 :doctype: book
 :notoc:
-:toc-title: Table of Contents
+:toc-title: 目次
 :nosectnums:
 :icons: font
 
-_This guide provides an overview of the Ansible Lightspeed playground environment and instructions for exploring its features._
+_このガイドは、Ansible Lightspeedプレイグラウンド環境の概要と、その機能を探索するための手順を提供します。_
 
 ---
 
-== Introduction and Setup
+== はじめに - セットアップ
 
 [IMPORTANT]
 ====
-**Important Note About This Lab**
+**このラボに関する重要な注意点**
 
-IBM watsonx Code Assistant models are continuously updated and improved. As a result, some specific task generation challenges in this lab may not work exactly as described due to model updates. This is expected behavior.
+IBM watsonx Code Assistantモデルは継続的に更新され、改善されています。その結果、モデルの更新により、このラボで説明されている特定のタスク生成の課題が、説明どおりに機能しない場合があります。これは予期される動作です。
 
-**The primary goal of this lab is to help you understand the key features of Ansible Lightspeed, including:**
+**このラボの主な目的は、Ansible Lightspeedの主要な機能、特に以下について理解を深めることです。**
 
-* **Playbook Generation** - Generating entire playbooks from natural language prompts
-* **Task Generation** - Generating individual tasks or multiple tasks at once
-* **Training Matches** - Understanding the transparency of AI suggestions
-* **Best Practices** - Learning how Lightspeed incorporates Ansible best practices
+* **プレイブック生成** - 自然言語のプロンプトからプレイブック全体を生成する
+* **タスク生成** - 個別のタスク、または複数のタスクを一度に生成する
+* **トレーニングの一致** - AIサジェスチョンの透明性を理解する
+* **ベストプラクティス** - LightspeedがどのようにAnsibleのベストプラクティスを取り入れているかを学ぶ
 
-**If a specific prompt doesn't generate suggestions as expected:**
+**特定のプロンプトが期待どおりにサジェスチョンを生成しない場合:**
 
-* Try **playbook generation** instead of task generation (click the Ansible icon → **Generate a playbook** button, enter your prompt, review the outline, and click Continue)
-* Experiment with different prompt variations to see what gives you the best suggestions
-* Simplify complex multi-task prompts into separate single-task prompts
-* The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
+* タスク生成ではなく**プレイブック生成**を試す（Ansibleアイコンをクリック → **Generate a playbook**ボタンをクリックし、プロンプトを入力、アウトラインをレビューしてからContinueをクリックします）
+* 最適なサジェスチョンを得るために、さまざまなプロンプトのバリエーションを試す
+* 複雑なマルチタスクのプロンプトを、個別のシングルのタスクのプロンプトに単純化する
+* 学習目標は変わりません。AIアシストによるAnsible開発の取り組み方を理解することです。
 ====
 
-This challenge provides a playground demo environment for the Ansible Lightspeed with IBM watsonx Code Assistant commercial service. This is for you to experiment with the use cases that best suit your workflows.
+この課題は、IBM watsonx Code AssistantとのAnsible Lightspeed商用サービスの**プレイグラウンドデモ環境**を提供します。これは、ご自身のワークフローに最適なユースケースを試すためのものです。
 
-All demo content is available in the link:https://github.com/ansible/ansible-lightspeed-demos[Ansible Lightspeed demos repository].
+すべてのデモコンテンツは、link:[https://github.com/ansible/ansible-lightspeed-demos](https://github.com/ansible/ansible-lightspeed-demos)[Ansible Lightspeed demosリポジトリ]で入手できます。
 
 [NOTE]
 ====
-**Playground Environment:** This is a free-form playground where you can explore all the Ansible Lightspeed features you've learned. All demo playbooks from previous modules are available here.
+**プレイグラウンド環境:** これは、学習したすべてのAnsible Lightspeed機能を自由に探索できるプレイグラウンドです。以前のモジュールからのすべてのデモプレイブックがここで利用できます。
 
-**Credentials:**
+**認証情報:**
 * **Ansible Automation Platform:** `admin` / `ansible123!`
 * **Gitea:** `gitea` / `gitea`
-* **AWS/Azure credentials:** Available in the **AWS/Azure** tab
+* **AWS/Azure認証情報:** **AWS/Azure**タブで利用可能
 ====
 
 ---
 
-== The Playground Environment
+## プレイグラウンド環境
 
-This lab is designed as a "choose your own adventure" playground. The following tabs are available for you to explore.
+このラボは「**自分で選択するアドベンチャー**」プレイグラウンドとして設計されています。探索できるタブは次のとおりです。
 
 [cols="1,3a", options="header"]
 |===
-| Tab name | Description
-| VS Code | Visual Studio Code with Ansible extension and Lightspeed configured
-| Ansible Automation Platform | Automation controller for running job templates
-| Cockpit | Cockpit web console (available after running Cockpit demo)
-| PGAdmin | PgAdmin interface (available after running PostgreSQL demo)
-| AWS/Azure | Cloud account credentials for AWS and Azure demos
-| gitea | Git repository containing all demo playbooks
+| タブ名 | 説明
+| VS Code | Ansible拡張機能とLightspeedが設定されたVisual Studio Code
+| Ansible Automation Platform | ジョブテンプレートを実行するためのAutomation Controller
+| Cockpit | Cockpitウェブコンソール（Cockpitデモ実行後に利用可能）
+| PGAdmin | PgAdminインターフェース（PostgreSQLデモ実行後に利用可能）
+| AWS/Azure | AWSおよびAzureデモ用のクラウドアカウント認証情報
+| gitea | すべてのデモプレイブックを含むGitリポジトリ
 |===
 
 ---
 
-== How to Run a Demo
+## デモの実行方法
 
-All instructions are also available in the link:https://github.com/ansible/ansible-lightspeed-demos[README of the repository].
+すべての手順は、link:[https://github.com/ansible/ansible-lightspeed-demos](https://github.com/ansible/ansible-lightspeed-demos)[リポジトリのREADME]でも入手できます。
 
-=== Select a Demo in VS Code
+### VS Codeでデモを選択する
 
-.   **Open VS Code** by clicking the **VS Code** tab at the top of your lab environment.
+1.   ラボ環境の上部にある**VS Code**タブをクリックして、**VS Codeを開きます**。
 
 [IMPORTANT]
 ====
-**Work in a new browser tab:** For the best experience with Ansible Lightspeed features, **click the VS Code tab to open it in a new browser tab** rather than using the inline embedded window.
+**新しいブラウザタブで作業:** Ansible Lightspeedの機能を最大限に活用するには、インラインの埋め込みウィンドウを使用するのではなく、**VS Codeタブをクリックして新しいブラウザタブで開いてください**。
 ====
 
-.   **Browse the demo playbooks.**
+2.   **デモプレイブックを参照します。**
 +
-    a. On the left side of VS Code, click the **Explorer** icon (two overlapping documents)
+    a. VS Codeの左側にある**Explorer**アイコン（2つのドキュメントが重なっているように見えます）をクリックします。
 +
-    b. Expand the **playbooks** folder to see all available demos:
-       * **playbooks/infra/install_cockpit/** - Cockpit deployment demo
-       * **playbooks/infra/install_pgsql_and_pgadmin/** - PostgreSQL and PGAdmin demo
-       * **playbooks/cloud/aws/** - AWS EC2 provisioning demo
-       * **playbooks/cloud/azure/** - Azure VM provisioning demo
+    b. **playbooks**フォルダを展開して、利用可能なすべてのデモを確認します。
+       * **playbooks/infra/install_cockpit/** - Cockpitデプロイメントデモ
+       * **playbooks/infra/install_pgsql_and_pgadmin/** - PostgreSQLおよびPGAdminデモ
+       * **playbooks/cloud/aws/** - AWS EC2プロビジョニングデモ
+       * **playbooks/cloud/azure/** - Azure VMプロビジョニングデモ
 
-.   **Open a demo playbook.**
+3.   **デモプレイブックを開きます。**
 +
-    a. Navigate to any demo folder (e.g., `playbooks/infra/install_cockpit/`)
+    a. いずれかのデモフォルダ（例: `playbooks/infra/install_cockpit/`）に移動します。
 +
-    b. You'll see two playbooks:
-       * **demo_<playbook_name>.yml** - Starting point with prompts for Lightspeed
-       * **solution_<playbook_name>.yml** - Complete solution for reference
+    b. 2つのプレイブックが表示されます。
+       * **demo_<playbook_name>.yml** - Lightspeedのプロンプトを含む開始点
+       * **solution_<playbook_name>.yml** - 参照用の完全な解決策
 +
-    c. Open the `demo_<playbook_name>.yml` file to start the demo
+    c. `demo_<playbook_name>.yml` ファイルを開いてデモを開始します。
 
-=== Execute the Playbook
+### プレイブックを実行する
 
-You can choose to run the `demo_*.yml` Playbook using either **automation controller** or **`ansible-navigator`**.
+`demo_*.yml` プレイブックは、**Automation Controller**または **`ansible-navigator`** のいずれかを使用して実行できます。
 
-==== Option 1: Using Automation Controller
+#### オプション1: Automation Controllerの使用
 
-.   **Commit and push the playbook to Git.**
+1.   **プレイブックをGitにコミットしてプッシュします。**
 +
-    a. On the left side of VS Code, click the **Source Control** icon (branch with circles)
+    a. VS Codeの左側にある**Source Control**アイコン（円が付いたブランチ）をクリックします。
 +
-    b. Hover over your changed file and click the **+** icon to stage it
+    b. 変更したファイルにカーソルを合わせ、**+**アイコンをクリックしてステージングします。
 +
-    c. Type a commit message in the "Message" box
+    c. 「Message」ボックスにコミットメッセージを入力します。
 +
-    d. Click the **Commit** button (checkmark icon)
+    d. **Commit**ボタン（チェックマークアイコン）をクリックします。
 +
-    e. Click **Sync Changes** to push to Git
+    e. **Sync Changes**をクリックしてGitにプッシュします。
 
-.   **Run the corresponding Job Template.**
+2.   **対応するジョブテンプレートを実行します。**
 +
-    a. Click the **Ansible Automation Platform** tab at the top
+    a. 上部にある**Ansible Automation Platform**タブをクリックします。
 +
-    b. Log in with `admin` / `ansible123!` if prompted
+    b. プロンプトが表示されたら `admin` / `ansible123!` でログインします。
 +
-    c. Click **Resources** → **Templates** on the left sidebar
+    c. 左側のサイドバーで**Resources** → **Templates**をクリックします。
 +
-    d. Find the matching job template for your demo:
+    d. デモに対応するジョブテンプレートを見つけます。
 +
 [cols="1a,1a", options="header"]
 |===
-| Job Template name | Demo Playbook
+| ジョブテンプレート名 | デモプレイブック
 | Deploy monitoring | `demo_install_cockpit.yml`
 | Deploy PostgreSQL and PG Admin | `demo_install_pgsql_pgadmin.yml`
 | Provision EC2 instance | `demo_provision_ec2_instance.yml`
 | Provision Azure VM | `demo_provision_azure_vm.yml`
 |===
 +
-    e. Click the **launch icon** (🚀) next to the template
+    e. テンプレートの横にある**起動アイコン**（🚀）をクリックします。
 +
-    f. Wait for the job to complete successfully
+    f. ジョブが正常に完了するまで待ちます。
 
-==== Option 2: Using ansible-navigator
+#### オプション2: ansible-navigatorの使用
 
-.   **Open a terminal in VS Code.**
+1.   **VS Codeでターミナルを開きます。**
 +
-    a. Make sure you're on the **VS Code** tab
+    a. **VS Code**タブにいることを確認します。
 +
-    b. Click **Terminal** → **New Terminal** from the top menu
+    b. 上部のメニューから**Terminal** → **New Terminal**をクリックします。
 +
-    c. A terminal panel will open at the bottom
+    c. ターミナルパネルが下部に開きます。
 
-.   **Navigate to the demo folder.**
+2.   **デモフォルダに移動します。**
 +
-    In the terminal, type a command like this (adjust for your chosen demo):
+    ターミナルで、次のコマンドを入力します（選択したデモに合わせて調整します）。
 +
 [source,bash]
 ----
 cd playbooks/infra/install_cockpit
 ----
 
-.   **Run the playbook.**
+3.   **プレイブックを実行します。**
 +
-    Type the command and press `ENTER`:
+    コマンドを入力し、`ENTER` を押します。
 +
 [source,bash]
 ----
 ansible-navigator run demo_install_cockpit.yml
 ----
 +
-    Press the `ESC` key to return to the prompt when done.
+    完了したら `ESC` キーを押してプロンプトに戻ります。
 
 ---
 
-== Help and Additional Information
+## ヘルプと追加情報
 
-=== Ansible Lightspeed Features
+### Ansible Lightspeedの機能
 
-There are TWO main ways to use Ansible Lightspeed in this playground:
+このプレイグラウンドでAnsible Lightspeedを使用する方法は主に**2つ**あります。
 
-==== Method 1: Playbook Generation (Recommended)
+#### 方法1: プレイブック生成（推奨）
 
-Generate an entire playbook from scratch using natural language:
+自然言語を使用して、プレイブック全体を一から生成します。
 
-.   **Access Playbook Generation:**
+1.   **プレイブック生成にアクセスします。**
 +
-    a. On the left side of VS Code, click the **Ansible** icon (looks like an "A")
+    a. VS Codeの左側にある**Ansible**アイコン（「A」のように見えます）をクリックします。
 +
-    b. In the **Ansible Lightspeed** section, click the **Generate a playbook** button
+    b. **Ansible Lightspeed**セクションで、**Generate a playbook**ボタンをクリックします。
 +
-       * Note: This button only appears after you have successfully logged in and activated your trial
+       * 注: このボタンは、ログインしてトライアルを正常にアクティベートした後にのみ表示されます。
 
-.   **Enter your prompt:**
+2.   **プロンプトを入力します。**
 +
-    a. A new screen will open with a text box labeled "Describe what you want to achieve in natural language"
+    a. 「Describe what you want to achieve in natural language（自然言語で達成したいことを記述してください）」というラベルの付いたテキストボックスがある新しい画面が開きます。
 +
-    b. Enter a description of what you want your playbook to do
+    b. プレイブックに実行させたいことの説明を入力します。
 +
-    c. Click the **Analyze** button
+    c. **Analyze**ボタンをクリックします。
 
 [TIP]
 ====
-**Writing effective prompts:**
+**効果的なプロンプトの書き方:**
 
-* You do NOT need to include phrases like "Generate a playbook" or "Create a playbook" - the AI knows it's creating playbooks
-* Just describe what you want your playbook to do in plain language
-* Be specific about the tasks you want to accomplish
+* 「Generate a playbook」や「Create a playbook」のようなフレーズを含める**必要はありません** - AIはプレイブックを作成していることを知っています
+* プレイブックに実行させたいことを平易な言葉で記述するだけです
+* 達成したいタスクについて具体的に記述します
 
-**Example prompts:**
+**プロンプトの例:**
 
-* `for rhel hosts with sudo, install and configure Apache web server with SSL enabled`
-* `configure PostgreSQL database on CentOS hosts and create a backup user`
+* `for rhel hosts with sudo, install and configure Apache web server with SSL enabled` (sudoを持つrhelホスト用に、SSLを有効にしてApacheウェブサーバーをインストールおよび設定する)
+* `configure PostgreSQL database on CentOS hosts and create a backup user` (CentOSホストでPostgreSQLデータベースを設定し、バックアップユーザーを作成する)
 
-You'll also see example prompts listed in the interface that you can use for inspiration.
+インターフェースには、インスピレーションとして使用できるプロンプトの例も表示されます。
 ====
 
-.   **Review and edit the outline:**
+3.   **アウトラインのレビューと編集を行います。**
 +
-    a. After clicking Analyze, Ansible Lightspeed will show an outline of the playbook
+    a. Analyzeをクリックすると、Ansible Lightspeedがプレイブックの**アウトライン**を表示します。
 +
-    b. The outline shows the suggested steps for your playbook
+    b. アウトラインには、プレイブックの提案された手順が表示されます。
 +
-    c. **The outline is editable** - you can modify the steps as needed to match your requirements
+    c. **アウトラインは編集可能**です - 要件に合わせて必要に応じて手順を変更できます。
 +
-    d. Review the outline and make any adjustments if necessary
+    d. アウトラインをレビューし、必要に応じて調整を加えます。
 
-.   **Generate the playbook:**
+4.   **プレイブックを生成します。**
 +
-    a. Once you're satisfied with the outline, click the **Continue** button
+    a. アウトラインに満足したら、**Continue**ボタンをクリックします。
 +
-    b. Ansible Lightspeed will generate the complete playbook based on the outline
+    b. Ansible Lightspeedがアウトラインに基づいて完全なプレイブックを生成します。
 
-.   **Save the playbook:**
+5.   **プレイブックを保存します。**
 +
-    a. The playbook will open as "Untitled" in the editor
+    a. プレイブックはエディターに「Untitled」として開きます。
 +
-    b. Press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac) to save the file
+    b. `CTRL+S` (Windows/Linux) または `CMD+S` (Mac) を押してファイルを保存します。
 +
-    c. Give your playbook a descriptive name ending with `.yml` (for example: `install_apache.yml`, `configure_database.yml`)
+    c. プレイブックに`.yml`で終わるわかりやすい名前を付けます（例: `install_apache.yml`、`configure_database.yml`）。
 +
-    d. Choose a location to save it (the `playbooks/` directory is recommended for organization)
+    d. 保存場所を選択します（整理のために `playbooks/` ディレクトリが推奨されます）。
 +
-    e. **Note:** If you save with the same name as a demo playbook (e.g., `demo_install_cockpit.yml`), you can use the existing job template in AAP. Otherwise, you'll need to create a new job template
+    e. **注:** デモプレイブックと同じ名前（例: `demo_install_cockpit.yml`）で保存した場合、AAPの既存のジョブテンプレートを使用できます。そうでない場合は、新しいジョブテンプレートを作成する必要があります。
 
-==== Method 2: Task Generation
+#### 方法2: タスク生成
 
-Generate individual tasks within an existing playbook:
+既存のプレイブック内で個別のタスクを生成します。
 
-.   **Single Task:**
+1.   **単一タスク:**
 +
-    a. Uncomment a task name line by removing the `#` (or press `CTRL+/` / `CMD+/`)
+    a. `#` を削除してタスク名行のコメントアウトを解除します（または `CTRL+/` / `CMD+/` を押します）。
 +
-    b. Place your cursor at the end of the task name line
+    b. カーソルをタスク名行の末尾に置きます。
 +
-    c. Press `ENTER` to create a new line
+    c. `ENTER` を押して新しい行を作成します。
 +
-    d. Lightspeed will show a suggestion in gray text
+    d. Lightspeedが**グレーのテキストでサジェスチョン**を表示します。
 +
-    e. Press `TAB` to accept the suggestion
+    e. `TAB` を押してサジェスチョンを受け入れます。
 
-.   **Multi-Task:**
+2.   **マルチタスク:**
 +
-    a. Find a comment line with multiple tasks separated by `&`
+    a. `&` で区切られた複数のタスクを含むコメント行を見つけます。
 +
-    b. **Do NOT uncomment** - leave the `#` in place
+    b. **コメントアウトを解除しないでください** - `#` はそのままにしておきます。
 +
-    c. Place your cursor at the end of the line
+    c. カーソルを行の末尾に置きます。
 +
-    d. Press `ENTER` to create a new line
+    d. `ENTER` を押して新しい行を作成します。
 +
-    e. Lightspeed will generate multiple tasks
+    e. Lightspeedが**複数のタスク**を生成します。
 +
-    f. Press `TAB` to accept all suggestions
+    f. `TAB` を押してすべてのサジェスチョンを受け入れます。
 
-=== Solution Playbooks
+### 解決策プレイブック
 
-If you need help or want to compare your work, solution playbooks are available in each demo folder with the `solution_` prefix (e.g., `solution_install_cockpit.yml`).
+ヘルプが必要な場合や作業内容を比較したい場合は、各デモフォルダで `solution_` プレフィックスが付いた解決策プレイブック（例: `solution_install_cockpit.yml`）を利用できます。
 
-=== Complete the Lab
+### ラボの完了
 
-Congratulations! You've explored the Ansible Lightspeed playground and learned how to use both playbook generation and task generation features!
+おめでとうございます！Ansible Lightspeedプレイグラウンドを探索し、プレイブック生成機能とタスク生成機能の両方の使用方法を学びました！
 
-=== Additional Resources
+---
 
-* link:https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed[More information] on Red Hat Ansible Lightspeed with IBM watsonx Code Assistant
-* link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[Ansible Lightspeed Documentation]
-* link:https://github.com/ansible/ansible-lightspeed-demos[Ansible Lightspeed Demos Repository]
-* link:https://www.youtube.com/ansibleautomation[Red Hat Ansible Automation Platform YouTube channel]
+## 追加リソース
 
-=== Feedback
+* IBM watsonx Code Assistantを使用したRed Hat Ansible Lightspeedに関するlink:[https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed)[詳細情報]
+* link:[https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant)[Ansible Lightspeedドキュメント]
+* link:[https://github.com/ansible/ansible-lightspeed-demos](https://github.com/ansible/ansible-lightspeed-demos)[Ansible Lightspeed Demosリポジトリ]
+* link:[https://www.youtube.com/ansibleautomation](https://www.youtube.com/ansibleautomation)[Red Hat Ansible Automation Platform YouTubeチャンネル]
 
-Please provide your feedback or report bugs using the **Ansible Lightspeed Feedback** section located in the VS Code Ansible Extension sidebar.
+=== フィードバック
+
+VS Code Ansible Extensionサイドバーにある**Ansible Lightspeed Feedback**セクションを使用して、フィードバックを提供するか、バグを報告してください。
