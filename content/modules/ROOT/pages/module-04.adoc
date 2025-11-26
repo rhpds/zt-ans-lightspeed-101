@@ -1,290 +1,302 @@
-= Lab Guide: Provisioning an AWS EC2 Instance with Ansible Lightspeed
+このAsciiDocテキストは、Ansible Lightspeedを使用してAWS EC2インスタンスをプロビジョニングするAnsible Playbookを生成する手順を説明したラボガイドです。
+
+以下に、対応する日本語訳を提供します。
+
+---
+
+= ラボガイド: Ansible Lightspeedを使用したAWS EC2インスタンスのプロビジョニング
 :doctype: book
 :notoc:
-:toc-title: Table of Contents
+:toc-title: 目次
 :nosectnums:
 :icons: font
 
-_A guide to using Ansible Lightspeed to generate a playbook that provisions a t3.small EC2 instance on AWS._
+_Ansible Lightspeedを使用して、AWSにt3.small EC2インスタンスをプロビジョニングするプレイブックを生成するためのガイドです。_
 
 ---
 
-== Introduction and Setup
+== はじめに - セットアップ
 
 [IMPORTANT]
 ====
-**Important Note About This Lab**
+**このラボに関する重要な注意点**
 
-IBM watsonx Code Assistant models are continuously updated and improved. As a result, some specific task generation challenges in this lab may not work exactly as described due to model updates. This is expected behavior.
+IBM watsonx Code Assistantモデルは継続的に更新され、改善されています。その結果、モデルの更新により、このラボで説明されている特定のタスク生成の課題が、説明どおりに機能しない場合があります。これは予期される動作です。
 
-**The primary goal of this lab is to help you understand the key features of Ansible Lightspeed, including:**
+**このラボの主な目的は、Ansible Lightspeedの主要な機能、特に以下について理解を深めることです。**
 
-* **Playbook Generation** - Generating entire playbooks from natural language prompts
-* **Task Generation** - Generating individual tasks or multiple tasks at once
-* **Training Matches** - Understanding the transparency of AI suggestions
-* **Best Practices** - Learning how Lightspeed incorporates Ansible best practices
+* **プレイブック生成** - 自然言語のプロンプトからプレイブック全体を生成する
+* **タスク生成** - 個別のタスク、または複数のタスクを一度に生成する
+* **トレーニングの一致** - AIサジェスチョンの透明性を理解する
+* **ベストプラクティス** - LightspeedがどのようにAnsibleのベストプラクティスを取り入れているかを学ぶ
 
-**If a specific prompt doesn't generate suggestions as expected:**
+**特定のプロンプトが期待どおりにサジェスチョンを生成しない場合:**
 
-* Try **playbook generation** instead of task generation (click the Ansible icon → **Generate a playbook** button, enter your prompt, review the outline, and click Continue)
-* Experiment with different prompt variations to see what gives you the best suggestions
-* Simplify complex multi-task prompts into separate single-task prompts
-* The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
+* タスク生成ではなく**プレイブック生成**を試す（Ansibleアイコンをクリック → **Generate a playbook**ボタンをクリックし、プロンプトを入力、アウトラインをレビューしてからContinueをクリックします）
+* 最適なサジェスチョンを得るために、さまざまなプロンプトのバリエーションを試す
+* 複雑なマルチタスクのプロンプトを、個別のシングルのタスクのプロンプトに単純化する
+* 学習目標は変わりません。AIアシストによるAnsible開発の取り組み方を理解することです。
 ====
 
-In this challenge, you will use Ansible Lightspeed to generate an Ansible Playbook that automates the provisioning of an Amazon Web Services (AWS) EC2 instance.
+この課題では、**Ansible Lightspeed**を使用して、Amazon Web Services (AWS) EC2インスタンスのプロビジョニングを自動化する**Ansible Playbook**を生成します。
 
-=== Your Mission
+=== あなたのミッション
 
-Your goal is to use Ansible Lightspeed to generate a playbook that automates the following tasks:
+あなたの目標は、Ansible Lightspeedを使用して、次のタスクを自動化するプレイブックを生成することです。
 
-.   Gathers information about an existing VPC subnet.
-.   Provisions a `t3.small` EC2 instance within that subnet.
-.   Waits for the instance to be ready and then prints its public IP address.
+1.   既存のVPCサブネットに関する情報を収集する。
+2.   そのサブネット内に `t3.small` **EC2インスタンス**をプロビジョニングする。
+3.   インスタンスが準備できるのを待ってから、そのパブリックIPアドレスを出力する。
 
-The examples used in this lab are available in the link:https://github.com/ansible/ansible-lightspeed-demos[Ansible Lightspeed Demo repository].
+The examples used in this lab are available in the link:[https://github.com/ansible/ansible-lightspeed-demos](https://github.com/ansible/ansible-lightspeed-demos)[Ansible Lightspeed Demoリポジトリ]。
 
 [NOTE]
 ====
-**AWS Credentials:** This lab uses a temporary AWS account. You'll find the credentials in the **AWS/Azure** tab at the top of your lab environment when you need them in Task 4.
+**AWS認証情報:** このラボでは一時的なAWSアカウントを使用します。認証情報は、タスク4で必要になるときに、ラボ環境の上部にある**AWS/Azure**タブにあります。
 
-**Need Help?** If you encounter difficulties or want to verify your work, you can reference the solution playbook at `playbooks/cloud/aws/solution_provision_ec2_instance.yml` in the repository.
+**ヘルプが必要な場合:** 困難に遭遇した場合や、作業を確認したい場合は、リポジトリ内の `playbooks/cloud/aws/solution_provision_ec2_instance.yml` にある解決策プレイブックを参照できます。
 ====
 
 ---
 
-== Task 1: Generate Playbook Tasks with Ansible Lightspeed
+## タスク1: Ansible Lightspeedを使用したプレイブックタスクの生成
 
-You will now edit a pre-created playbook file and use natural language prompts to have Ansible Lightspeed generate the necessary tasks.
+事前に作成されたプレイブックファイルを編集し、自然言語のプロンプトを使用して、Ansible Lightspeedに必要なタスクを生成させます。
 
-.   **Open the playbook file in VS Code.**
+1.   **VS Codeでプレイブックファイルを開きます。**
 +
-    a. Click on the **VS Code** tab at the top of your lab environment
+    a. ラボ環境の上部にある**VS Code**タブをクリックします。
 +
 [IMPORTANT]
 ====
-**Work in a new browser tab:** For the best experience with Ansible Lightspeed features, **click the VS Code tab to open it in a new browser tab** rather than using the inline embedded window.
+**新しいブラウザタブで作業:** Ansible Lightspeedの機能を最大限に活用するには、インラインの埋め込みウィンドウを使用するのではなく、**VS Codeタブをクリックして新しいブラウザタブで開いてください**。
 ====
 +
-    b. On the left side of VS Code, click the **Explorer** icon (two overlapping documents) to show the file explorer
+    b. VS Codeの左側にある**Explorer**アイコン（2つのドキュメントが重なっているように見えます）をクリックして、ファイルエクスプローラーを表示します。
 +
-    c. In the file explorer, expand these folders: **playbooks** → **cloud** → **aws**
+    c. ファイルエクスプローラーで、**playbooks** → **cloud** → **aws**のフォルダを展開します。
 +
-    d. Click on **demo_provision_ec2_instance.yml** to open it in the editor
+    d. **demo_provision_ec2_instance.yml**をクリックして、エディターで開きます。
 
-.   **Generate the subnet info and variable tasks.**
+2.   **サブネット情報と変数タスクを生成します。**
 +
 [IMPORTANT]
 ====
-**Multi-task prompt:** This comment starts with `#` and uses `&` to separate TWO tasks. Do NOT uncomment - just press ENTER at the end.
+**マルチタスクのプロンプト:** このコメントは `#` で始まり、`&` を使用して**2つのタスク**を区切ります。コメントアウトを解除してはなりません - 行の最後に `ENTER` を押すだけです。
 ====
 +
-    a. Find the line:
+    a. 次の行を見つけます。
 +
 [source,yaml]
 ----
-    # Gather info from subnet called subnet-lightspeed & create vpc_subnet_id var
+    # Gather info from subnet called subnet-lightspeed & create vpc_subnet_id var
 ----
 +
-    b. **Do NOT uncomment this line** - leave the `#` symbol in place
+    b. **この行のコメントアウトを解除しないでください** - `#` 記号はそのままにしておきます。
 +
-    c. **Place your cursor at the end of the line** (after "var")
+    c. **カーソルをその行の行末**（"var"の後）に置きます。
 +
-    d. **Press `ENTER`** to create a new line
+    d. **`ENTER` を押して**新しい行を作成します。
 +
-    e. **Press `TAB`** when Lightspeed shows suggestions for BOTH tasks
+    e. Lightspeedが**両方のタスク**のサジェスチョンを表示したら**`TAB` を押します**。
 +
-    _Lightspeed Highlight:_ Lightspeed generates two tasks from this single prompt. The first gathers information about the named subnet, and the second uses the `set_fact` module to create a new variable, `vpc_subnet_id`, from the results of the first task.
+    _Lightspeedの注目点:_ Lightspeedはこの単一のプロンプトから2つのタスクを生成します。1つ目は名前付きサブネットの情報を収集し、2つ目は `set_fact` モジュールを使用して、1つ目のタスクの結果から新しい変数 `vpc_subnet_id` を作成します。
 
-.   **Generate the EC2 instance provisioning task.**
+3.   **EC2インスタンスプロビジョニングタスクを生成します。**
 +
-    a. Find the commented line:
+    a. 次のコメントアウトされた行を見つけます。
 +
 [source,yaml]
 ----
-    #- name: Provision t3.small instance using my_instance var
+    #- name: Provision t3.small instance using my_instance var
 ----
 +
-    b. **Uncomment the line** by removing the `#` (or press `CTRL+/` for Windows/Linux or `CMD+/` for Mac)
+    b. `#` を削除して**行のコメントアウトを解除します**（または Windows/Linuxでは `CTRL+/`、Macでは `CMD+/` を押します）。
 +
-    c. **Place your cursor at the end of the line** (after "var")
+    c. **カーソルをその行の行末**（"var"の後）に置きます。
 +
-    d. **Press `ENTER`** to create a new line
+    d. **`ENTER` を押して**新しい行を作成します。
 +
-    e. **Press `TAB`** when Lightspeed shows a suggestion
+    e. Lightspeedがサジェスチョンを表示したら**`TAB` を押します**。
 +
-    _Lightspeed Highlight:_ Lightspeed correctly uses the `amazon.aws.ec2_instance` module. It also incorporates the `my_instance` variable (defined in the playbook's `vars` section) and the `vpc_subnet_id` variable created in the previous step.
+    _Lightspeedの注目点:_ Lightspeedは `amazon.aws.ec2_instance` モジュールを正しく使用します。また、プレイブックの `vars` セクションで定義されている `my_instance` 変数と、前のステップで作成された `vpc_subnet_id` 変数も組み込んでいます。
 
-.   **Generate the tasks to get and print the public IP.**
+4.   **パブリックIPを取得して出力するタスクを生成します。**
 +
 [IMPORTANT]
 ====
-**Multi-task prompt:** This will generate TWO tasks - one to get the IP and one to print it.
+**マルチタスクのプロンプト:** これにより、IPを取得するタスクとそれを出力するタスクの**2つのタスク**が生成されます。
 ====
 +
-    a. Find the line:
+    a. 次の行を見つけます。
 +
 [source,yaml]
 ----
-    # Create var from public_ip_address with retry & print it out
+    # Create var from public_ip_address with retry & print it out
 ----
 +
-    b. **Do NOT uncomment this line** - leave the `#` symbol in place
+    b. **この行のコメントアウトを解除しないでください** - `#` 記号はそのままにしておきます。
 +
-    c. **Place your cursor at the end of the line** (after "out")
+    c. **カーソルをその行の行末**（"out"の後）に置きます。
 +
-    d. **Press `ENTER`** to create a new line
+    d. **`ENTER` を押して**新しい行を作成します。
 +
-    e. **Press `TAB`** when Lightspeed shows suggestions for BOTH tasks
+    e. Lightspeedが**両方のタスク**のサジェスチョンを表示したら**`TAB` を押します**。
 +
-    _Lightspeed Highlight:_ Lightspeed generates a task to create a new variable for the public IP address, including a `wait_for` condition to ensure the IP is available. It then creates a second task to print the value of that new variable.
+    _Lightspeedの注目点:_ Lightspeedは、パブリックIPアドレスが利用可能であることを保証するための `wait_for` 条件を含む、パブリックIPアドレスの新しい変数を作成するタスクを生成します。次に、その新しい変数の値を出力する2番目のタスクを作成します。
 
-.   **Save the playbook.**
+5.   **プレイブックを保存します。**
 +
-    Click **File** → **Save** from the top menu, or press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac).
+    トップメニューから**File** → **Save**をクリックするか、`CTRL+S` (Windows/Linux) または `CMD+S` (Mac) を押します。
 
-== Task 2: Review Ansible Lightspeed Training Matches
+---
 
-One of Ansible Lightspeed's key differentiators is providing information on the potential training data used to generate suggestions.
+## タスク2: Ansible Lightspeedトレーニングの一致の確認
 
-.   **Open the Lightspeed Training Matches view.**
-+
-    a. At the top of VS Code, click **View** in the menu bar
-+
-    b. Select **Open View...**
-+
-    c. In the search box that appears, type `Lightspeed`
-+
-    d. Click on **Lightspeed Training Matches** from the list
+Ansible Lightspeedの主要な差別化要因の1つは、サジェスチョンの生成に使用された可能性のあるトレーニングデータに関する情報を提供することです。
 
-.   **Examine a training match.**
+1.   **Lightspeed Training Matchesビューを開きます。**
 +
-    a. In your playbook, click on any task name you generated
+    a. VS Codeの上部にあるメニューバーで**View**をクリックします。
 +
-    b. Delete one line of the generated code and press `ENTER` to regenerate the suggestion
+    b. **Open View...** を選択します。
 +
-    c. Look at the **Lightspeed Training Matches** pane (usually at the bottom of VS Code)
+    c. 表示される検索ボックスに `Lightspeed` と入力します。
 +
-    d. You'll see potential training sources. **Click** on any entry to see details including the content source, author, and license information.
+    d. リストから**Lightspeed Training Matches**をクリックします。
 
-== Task 3: Run the Playbook
+2.   **トレーニングの一致を調べます。**
++
+    a. プレイブック内で、生成した任意のタスク名をクリックします。
++
+    b. 生成されたコードの1行を削除し、`ENTER` を押してサジェスチョンを再生成します。
++
+    c. **Lightspeed Training Matches**ペイン（通常はVS Codeの下部にあります）を確認します。
++
+    d. 潜在的なトレーニングソースが表示されます。**任意の項目をクリック**して、コンテンツソース、作成者、ライセンス情報などの詳細を確認します。
 
-You can now choose to run the completed playbook using either the automation controller or `ansible-navigator`.
+---
 
-=== Option 1: Using Automation Controller
+## タスク3: プレイブックの実行
 
-.   **Commit and push the playbook to Git.**
-+
-    a. On the left side of VS Code, click the **Source Control** icon (it looks like a branch with circles)
-+
-    b. You should see `demo_provision_ec2_instance.yml` listed under "Changes"
-+
-    c. Hover over the file name and click the **+** (plus) icon that appears to stage the changes
-+
-    d. At the top, in the "Message" box, type a commit message like: `Provision EC2 instance`
-+
-    e. Click the **Commit** button (checkmark icon)
-+
-    f. Click the **Sync Changes** button to push your playbook to the Git repository
+これで、完成したプレイブックを、Automation Controllerまたは `ansible-navigator` のいずれかを使用して実行することを選択できます。
 
-.   **Run the playbook from Automation Controller.**
-+
-    a. Click the **Ansible Automation Platform** tab at the top of the lab window
-+
-    b. If you see a login screen, enter:
-       * **Username:** `admin`
-       * **Password:** `ansible123!`
-+
-    c. On the left sidebar, click **Resources** → **Templates**
-+
-    d. Find the template named **Provision EC2 instance**
-+
-    e. Click the **launch icon** (🚀 rocket ship) on the right side of that row
-+
-    f. Wait for the job to complete successfully (you'll see a green "Successful" status)
+### オプション1: Automation Controllerの使用
 
-=== Option 2: Using ansible-navigator
+1.   **プレイブックをGitにコミットしてプッシュします。**
++
+    a. VS Codeの左側にある**Source Control**アイコン（円が付いたブランチのように見えます）をクリックします。
++
+    b. 「Changes」の下に `demo_provision_ec2_instance.yml` が表示されているはずです。
++
+    c. ファイル名にカーソルを合わせ、表示される**+**（プラス）アイコンをクリックして変更をステージングします。
++
+    d. 上部の「Message」ボックスに、`Provision EC2 instance` のようなコミットメッセージを入力します。
++
+    e. **Commit**ボタン（チェックマークアイコン）をクリックします。
++
+    f. **Sync Changes**ボタンをクリックして、プレイブックをGitリポジトリにプッシュします。
 
-.   **Open a terminal in VS Code.**
+2.   **Automation Controllerからプレイブックを実行します。**
 +
-    a. Make sure you're on the **VS Code** tab
+    a. ラボウィンドウの上部にある**Ansible Automation Platform**タブをクリックします。
 +
-    b. Look at the top menu bar and click **Terminal** → **New Terminal**
+    b. ログイン画面が表示された場合は、以下を入力します。
+       * **ユーザー名:** `admin`
+       * **パスワード:** `ansible123!`
 +
-    c. A terminal panel will open at the bottom of VS Code
+    c. 左側のサイドバーで**Resources** → **Templates**をクリックします。
++
+    d. **Provision EC2 instance**という名前のテンプレートを見つけます。
++
+    e. その行の右側にある**起動アイコン**（🚀ロケット船）をクリックします。
++
+    f. ジョブが正常に完了するまで待ちます（緑色の「Successful」ステータスが表示されます）。
 
-.   **Navigate to the playbook folder.**
+### オプション2: ansible-navigatorの使用
+
+1.   **VS Codeでターミナルを開きます。**
 +
-    In the terminal, type the following command and press `ENTER`:
+    a. **VS Code**タブにいることを確認します。
++
+    b. 上部のメニューバーを見て、**Terminal** → **New Terminal**をクリックします。
++
+    c. ターミナルパネルがVS Codeの下部に開きます。
+
+2.   **プレイブックフォルダに移動します。**
++
+    ターミナルで、次のコマンドを入力し、`ENTER` を押します。
 +
 [source,bash]
 ----
 cd playbooks/cloud/aws
 ----
 
-.   **Run the playbook with ansible-navigator.**
+3.   **ansible-navigatorでプレイブックを実行します。**
 +
-    Type the following command and press `ENTER`:
+    次のコマンドを入力し、`ENTER` を押します。
 +
 [source,bash]
 ----
 ansible-navigator run demo_provision_ec2_instance.yml
 ----
 +
-    The playbook will run and show you the results. Press the `ESC` key to return to the terminal prompt when it's done.
-
-== Task 4: Verify the EC2 Instance Creation
-
-Finally, verify that the new EC2 instance is running in the AWS console.
-
-.   **Get your AWS credentials and access the console.**
-+
-    a. At the very top of your lab environment, click the **AWS/Azure** tab
-+
-    b. You'll see AWS account credentials displayed (Account ID, Username, Password, and Console URL)
-+
-    c. Click the **AWS Console URL** link (or copy it to a new browser tab)
-
-.   **Log in to the AWS Console.**
-+
-    a. Go back to the **AWS/Azure** tab to copy the credentials
-+
-    b. Copy the **Username** and **Password** shown
-+
-    c. Paste them into the AWS login page
-+
-    d. Click **Sign In**
-
-.   **View your EC2 instance.**
-+
-    a. At the top of the AWS Console, make sure the region is set to **N. Virginia (us-east-1)**
-+
-    b. In the search bar at the top, type `EC2` and click on **EC2** service
-+
-    c. On the left sidebar, click **Instances** (under "Instances")
-+
-    d. You should see your new instance named **lightspeed-instance** with a status of "Running"
-+
-    e. This confirms that your Ansible playbook successfully created the EC2 instance!
+    プレイブックが実行され、結果が表示されます。完了したら `ESC` キーを押してターミナルプロンプトに戻ります。
 
 ---
 
-== Conclusion and Additional Resources
+## タスク4: EC2インスタンス作成の確認
 
-Congratulations! You've successfully created an Ansible Playbook using Ansible Lightspeed to provision an AWS EC2 Instance!
+最後に、AWSコンソールで新しいEC2インスタンスが実行されていることを確認します。
+
+1.   **AWS認証情報を取得し、コンソールにアクセスします。**
++
+    a. ラボ環境の一番上にある**AWS/Azure**タブをクリックします。
++
+    b. AWSアカウントの認証情報（アカウントID、ユーザー名、パスワード、コンソールURL）が表示されます。
++
+    c. **AWS Console URL**リンクをクリックします（または新しいブラウザタブにコピーします）。
+
+2.   **AWSコンソールにログインします。**
++
+    a. **AWS/Azure**タブに戻って認証情報をコピーします。
++
+    b. 表示されている**Username**と**Password**をコピーします。
++
+    c. それらをAWSログインページに貼り付けます。
++
+    d. **Sign In**をクリックします。
+
+3.   **EC2インスタンスを表示します。**
++
+    a. AWSコンソールの最上部で、リージョンが**N. Virginia (us-east-1)**に設定されていることを確認します。
++
+    b. 上部の検索バーに `EC2` と入力し、**EC2**サービスをクリックします。
++
+    c. 左側のサイドバーで**Instances**（「Instances」の下）をクリックします。
++
+    d. **lightspeed-instance**という名前の新しいインスタンスが「Running」のステータスで表示されているはずです。
++
+    e. これにより、AnsibleプレイブックがEC2インスタンスの作成に成功したことが確認されます！
+
+---
+
+== 結論と追加リソース
+
+おめでとうございます！Ansible Lightspeedを使用して、AWS EC2インスタンスをプロビジョニングするためのAnsible Playbookの作成に成功しました！
 
 [NOTE]
 ====
-**Solution Playbook Available:** If you encountered issues or want to compare your work, you can review the complete solution at `playbooks/cloud/aws/solution_provision_ec2_instance.yml` in the repository.
+**解決策プレイブックが入手可能:** 問題が発生した場合や、作業内容を比較したい場合は、リポジトリ内の `playbooks/cloud/aws/solution_provision_ec2_instance.yml` で完全な解決策を確認できます。
 ====
 
-=== Additional Resources
+=== 追加リソース
 
-* link:https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed[More information] on Red Hat Ansible Lightspeed with IBM watsonx Code Assistant
-* link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[Ansible Lightspeed Documentation]
-* link:https://docs.aws.amazon.com/ec2/[AWS EC2 Documentation]
-* link:https://www.youtube.com/ansibleautomation[Red Hat Ansible Automation Platform YouTube channel]
+* IBM watsonx Code Assistantを使用したRed Hat Ansible Lightspeedに関するlink:[https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed)[詳細情報]
+* link:[https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant)[Ansible Lightspeedドキュメント]
+* link:[https://docs.aws.amazon.com/ec2/](https://docs.aws.amazon.com/ec2/)[AWS EC2ドキュメント]
+* link:[https://www.youtube.com/ansibleautomation](https://www.youtube.com/ansibleautomation)[Red Hat Ansible Automation Platform YouTubeチャンネル]
 
-=== Feedback
+=== フィードバック
 
-Please provide your feedback or report bugs using the **Ansible Lightspeed Feedback** section located in the VS Code Ansible Extension sidebar.
+VS Code Ansible Extensionサイドバーにある**Ansible Lightspeed Feedback**セクションを使用して、フィードバックを提供するか、バグを報告してください。
