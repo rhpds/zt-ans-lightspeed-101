@@ -88,7 +88,7 @@ virtualmachines:
    # bootloader: "efi"
     tags:
       - key: "AnsibleGroup"
-        value: "isolated"
+        value: "bastions"
     networks:
       - default
       - secondary
@@ -170,7 +170,7 @@ virtualmachines:
     bootloader: "efi"
     tags:
       - key: "AnsibleGroup"
-        value: "isolated"
+        value: "nodes"
     networks:
       - default
       - secondary
