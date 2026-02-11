@@ -11,7 +11,7 @@ nmcli connection up enp2s0
 echo "192.168.1.10 control.lab control" >> /etc/hosts
 
 # COMMON_PASSWORD is provided by the Ansible deployment (main.yml) via extra vars
-echo "rhel:${COMMON_PASSWORD}" | chpasswd
+# VM password is changed by main.yml before this script runs
 
 RHEL_SSH_DIR="/home/rhel/.ssh"
 RHEL_PRIVATE_KEY="$RHEL_SSH_DIR/id_rsa"

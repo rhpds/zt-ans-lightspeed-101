@@ -1,11 +1,14 @@
 ---
-- name: Create inventory
+- name: Create inventory with image password
   hosts: localhost
   gather_facts: false
 
   vars_files:
     - ../config/secrets.yaml
-  
+
+  vars:
+    _image_password: "{{ image_password | default('ansible123!') }}"
+
   tasks:
   - name: Add bastion host
     ansible.builtin.add_host:
@@ -13,18 +16,38 @@
       ansible_ssh_host: "{{ lookup('ansible.builtin.env', 'BASTION_HOST') }}"
       ansible_ssh_port: "{{ lookup('ansible.builtin.env', 'BASTION_PORT') }}"
       ansible_ssh_user: "{{ lookup('ansible.builtin.env', 'BASTION_USER') }}"
-      ansible_ssh_pass: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
-      ansible_become_password: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
+      ansible_ssh_pass: "{{ _image_password }}"
+      ansible_become_password: "{{ _image_password }}"
   - name: Add nodes
     ansible.builtin.add_host:
       name: "{{ item }}"
       ansible_ssh_host: "{{ item }}"
       ansible_ssh_port: "{{ lookup('ansible.builtin.env', 'BASTION_PORT') }}"
       ansible_ssh_user: "{{ lookup('ansible.builtin.env', 'BASTION_USER') }}"
-      ansible_ssh_pass: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
+      ansible_ssh_pass: "{{ _image_password }}"
+      ansible_become_password: "{{ _image_password }}"
       ansible_python_interpreter: /usr/libexec/platform-python
     loop:
       - vscode
+
+- name: Change VM passwords to common_password
+  hosts: all:!localhost
+  gather_facts: false
+  tasks:
+  - name: Wait for SSH
+    ansible.builtin.wait_for_connection:
+
+  - name: Set rhel password to common_password
+    ansible.builtin.user:
+      name: rhel
+      password: "{{ common_password | password_hash('sha512') }}"
+    become: true
+
+  - name: Update ansible_ssh_pass for subsequent plays
+    ansible.builtin.set_fact:
+      ansible_ssh_pass: "{{ common_password }}"
+      ansible_become_password: "{{ common_password }}"
+
 - name: Demo Playbook for the ansible-runner API
   hosts: all:!localhost
   gather_facts: false

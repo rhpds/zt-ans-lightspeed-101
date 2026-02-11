@@ -8,7 +8,7 @@ echo "192.168.1.11 netbox.lab netbox" >> /etc/hosts
 echo "192.168.1.12 devtools.lab devtools" >> /etc/hosts
 
 # COMMON_PASSWORD is provided by the Ansible deployment (main.yml) via extra vars
-echo "rhel:${COMMON_PASSWORD}" | chpasswd
+# VM password is changed by main.yml before this script runs
 
 # Set katello facts before satellite registration
 mkdir -p /etc/rhsm/facts
