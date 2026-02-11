@@ -8,6 +8,7 @@
 
   vars:
     _image_password: "{{ image_password | default('ansible123!') }}"
+    _common_password: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
 
   tasks:
   - name: Add bastion host
@@ -40,13 +41,13 @@
   - name: Set rhel password to common_password
     ansible.builtin.user:
       name: rhel
-      password: "{{ common_password | password_hash('sha512') }}"
+      password: "{{ hostvars['localhost']['_common_password'] | password_hash('sha512') }}"
     become: true
 
   - name: Update ansible_ssh_pass for subsequent plays
     ansible.builtin.set_fact:
-      ansible_ssh_pass: "{{ common_password }}"
-      ansible_become_password: "{{ common_password }}"
+      ansible_ssh_pass: "{{ hostvars['localhost']['_common_password'] }}"
+      ansible_become_password: "{{ hostvars['localhost']['_common_password'] }}"
 
 - name: Demo Playbook for the ansible-runner API
   hosts: all:!localhost
@@ -91,9 +92,9 @@
     become: true
     register: r_result
     environment:
-      COMMON_PASSWORD: "{{ common_password }}"
-      GUID: "{{ guid }}"
-      SATELLITE_SCRIPT: "{{ satellite_script | default('') }}"
+      COMMON_PASSWORD: "{{ hostvars['localhost']['_common_password'] }}"
+      GUID: "{{ lookup('ansible.builtin.env', 'GUID') }}"
+      SATELLITE_SCRIPT: "{{ lookup('ansible.builtin.env', 'SATELLITE_SCRIPT') | default('') }}"
       SATELLITE_URL: "{{ satellite_url }}"
       SATELLITE_ORG: "{{ satellite_org }}"
       SATELLITE_ACTIVATIONKEY: "{{ satellite_activationkey }}"
