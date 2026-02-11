@@ -10,7 +10,8 @@ nmcli connection add type ethernet con-name enp2s0 ifname enp2s0 ipv4.addresses 
 nmcli connection up enp2s0
 echo "192.168.1.10 control.lab control" >> /etc/hosts
 
-
+# LAB_PASSWORD and SSH_PASSWORD are provided by the Ansible deployment (main.yml)
+echo "rhel:${SSH_PASSWORD}" | chpasswd
 
 RHEL_SSH_DIR="/home/rhel/.ssh"
 RHEL_PRIVATE_KEY="$RHEL_SSH_DIR/id_rsa"
@@ -102,7 +103,7 @@ MAX_RETRIES=30
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   # Use sshpass to connect to vscode node and check if setup is complete
   # The vscode node setup creates /home/rhel/.cloud_env and ~/acme_corp as final steps
-  if /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "test -f /home/rhel/.cloud_env && test -d /home/rhel/acme_corp" 2>/dev/null; then
+  if /usr/bin/sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "test -f /home/rhel/.cloud_env && test -d /home/rhel/acme_corp" 2>/dev/null; then
     echo "Vscode node setup detected as complete"
     break
   fi
@@ -117,7 +118,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
 done
 
 # Retrieve cloud environment variables from vscode node
-/usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env 2>/dev/null
+/usr/bin/sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env 2>/dev/null
 
 if [ -f /tmp/.cloud_env ]; then
   echo "Cloud environment variables retrieved from vscode node"
@@ -134,7 +135,7 @@ if [ -f /tmp/.cloud_env ]; then
 
   # Run AWS/Azure resource preparation playbooks on vscode node where credentials are available
   echo "Setting up AWS resources on vscode node..."
-  /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
+  /usr/bin/sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
 
   if [ $? -eq 0 ]; then
     echo "AWS resources created successfully"
@@ -143,14 +144,14 @@ if [ -f /tmp/.cloud_env ]; then
   fi
 
   echo "Setting up Azure resources on vscode node..."
-  /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/azure/prepare_azure_environment.yml -m stdout"
+  /usr/bin/sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/azure/prepare_azure_environment.yml -m stdout"
 
   if [ $? -eq 0 ]; then
     echo "Azure resources created successfully"
 
     # Fetch the generated Azure SSH public key from vscode node
     echo "Fetching Azure SSH public key from vscode node..."
-    /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat ~/acme_corp/playbooks/cloud/azure/files/azure_demo_ssh_key.pub" > /tmp/azure_demo_ssh_key.pub 2>/dev/null
+    /usr/bin/sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "cat ~/acme_corp/playbooks/cloud/azure/files/azure_demo_ssh_key.pub" > /tmp/azure_demo_ssh_key.pub 2>/dev/null
 
     if [ -f /tmp/azure_demo_ssh_key.pub ] && [ -s /tmp/azure_demo_ssh_key.pub ]; then
       echo "Azure SSH public key retrieved successfully"
@@ -255,8 +256,8 @@ tee /tmp/setup.yml > /dev/null << EOF
         variables:
           ansible_host: "control.lab"
           ansible_user: rhel
-          ansible_password: "ansible123!"
-          ansible_become_password: "ansible123!"
+          ansible_password: "${SSH_PASSWORD}"
+          ansible_become_password: "${SSH_PASSWORD}"
           ansible_python_interpreter: /usr/bin/python3
           ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
 
@@ -269,8 +270,8 @@ tee /tmp/setup.yml > /dev/null << EOF
         variables:
           ansible_host: "vscode.lab"
           ansible_user: rhel
-          ansible_password: "ansible123!"
-          ansible_become_password: "ansible123!"
+          ansible_password: "${SSH_PASSWORD}"
+          ansible_become_password: "${SSH_PASSWORD}"
           ansible_python_interpreter: /usr/bin/python3
           ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
 
@@ -667,7 +668,8 @@ track_slug: lightspeed-101
 # student_password: "{{ vault_student_password }}"
 
 controller_username: "admin"
-controller_password: "ansible123!"
+lab_password: "${LAB_PASSWORD}"
+controller_password: "{{ lab_password }}"
 controller_hostname: "https://localhost"
 controller_validate_certs: false
 student_username: "student"
@@ -1116,3 +1118,4 @@ else
   echo "Controller setup failed - check /tmp/controller_setup.log for details"
   exit 1
 fi
+

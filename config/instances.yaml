@@ -95,7 +95,7 @@ virtualmachines:
     userdata: |-
       #cloud-config
       user: rhel
-      password: ansible123!
+      password: redhat1!
       chpasswd: { expire: False }
       runcmd:
         - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_config
@@ -215,7 +215,7 @@ virtualmachines:
     userdata: |-
       #cloud-config
       user: rhel
-      password: ansible123!
+      password: redhat1!
       chpasswd: { expire: False }
       runcmd:
         - echo "PasswordAuthentication yes" > /etc/ssh/sshd_config.d/50-cloud-init.conf

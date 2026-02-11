@@ -51,7 +51,7 @@ Your lab environment provides access to multiple services via the tabs at the to
 
 Different services in this lab use different credentials:
 
-* **Automation Controller:** `admin` / `ansible123!`
+* **Automation Controller:** `admin` / `{{ lab_password }}`
 * **Gitea (Git Repository):** `gitea` / `gitea`
 * **VS Code:** Access via browser tab (no login required)
 ====

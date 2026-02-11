@@ -191,7 +191,7 @@ You can now choose to run the completed `demo_install_cockpit.yml` playbook usin
 +
     b. If you see a login screen, enter:
        * **Username:** `admin`
-       * **Password:** `ansible123!`
+       * **Password:** `{{ lab_password }}`
 +
     c. On the left sidebar, click **Resources** → **Templates**
 +

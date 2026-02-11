@@ -7,11 +7,32 @@ echo "192.168.1.10 control.lab control" >> /etc/hosts
 echo "192.168.1.11 netbox.lab netbox" >> /etc/hosts
 echo "192.168.1.12 devtools.lab devtools" >> /etc/hosts
 
-curl -k  -L https://${SATELLITE_URL}/pub/katello-server-ca.crt -o /etc/pki/ca-trust/source/anchors/${SATELLITE_URL}.ca.crt
-update-ca-trust
-rpm -Uhv https://${SATELLITE_URL}/pub/katello-ca-consumer-latest.noarch.rpm
+# LAB_PASSWORD and SSH_PASSWORD are provided by the Ansible deployment (main.yml)
+echo "rhel:${SSH_PASSWORD}" | chpasswd
 
-subscription-manager register --org=${SATELLITE_ORG} --activationkey=${SATELLITE_ACTIVATIONKEY}
+# Set katello facts before satellite registration
+mkdir -p /etc/rhsm/facts
+INVENTORY_HOSTNAME=$(hostname -s)
+DATETIME=$(date -u +%Y%m%dT%H%M%SZ | tr '[:upper:]' '[:lower:]')
+if echo "${INVENTORY_HOSTNAME}" | grep -q "${GUID}"; then
+    SUBSCRIPTION_HOSTNAME="${INVENTORY_HOSTNAME}-${DATETIME}"
+else
+    SUBSCRIPTION_HOSTNAME="${INVENTORY_HOSTNAME}.${GUID}.internal-${DATETIME}"
+fi
+printf '{"network.fqdn": "%s"}\n' "${SUBSCRIPTION_HOSTNAME}" > /etc/rhsm/facts/katello.facts
+
+# Register with content source (Satellite or custom script)
+if [ -n "${SATELLITE_SCRIPT}" ]; then
+    echo "Executing custom satellite registration script..."
+    eval "${SATELLITE_SCRIPT}"
+elif [ -n "${SATELLITE_URL}" ]; then
+    curl -k -L https://${SATELLITE_URL}/pub/katello-server-ca.crt -o /etc/pki/ca-trust/source/anchors/${SATELLITE_URL}.ca.crt
+    update-ca-trust
+    rpm -Uhv https://${SATELLITE_URL}/pub/katello-ca-consumer-latest.noarch.rpm
+    subscription-manager register --org=${SATELLITE_ORG} --activationkey=${SATELLITE_ACTIVATIONKEY}
+else
+    echo "WARNING: No SATELLITE_SCRIPT or SATELLITE_URL defined, skipping registration"
+fi
 setenforce 0
 
 echo "%rhel ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/rhel_sudoers
@@ -126,7 +147,7 @@ GITIGNORE_EOF
 
 # Create inventory file for the new lab platform (targeting localhost/vscode VM)
 echo "Creating inventory file for lab platform..."
-sudo -u rhel tee /home/rhel/${REPO_NAME}/inventory.yml > /dev/null << 'INVENTORY_EOF'
+sudo -u rhel tee /home/rhel/${REPO_NAME}/inventory.yml > /dev/null << INVENTORY_EOF
 ---
 all:
   children:
@@ -136,7 +157,7 @@ all:
           ansible_connection: local
   vars:
     ansible_user: rhel
-    ansible_become_password: ansible123!
+    ansible_become_password: ${SSH_PASSWORD}
     ansible_host_key_checking: false
 INVENTORY_EOF
 
@@ -144,7 +165,7 @@ INVENTORY_EOF
 echo "Updating cockpit playbook inventory..."
 COCKPIT_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/inventory/inventory.yml"
 if [ -f "${COCKPIT_INVENTORY}" ]; then
-    sudo -u rhel tee "${COCKPIT_INVENTORY}" > /dev/null << 'COCKPIT_INVENTORY_EOF'
+    sudo -u rhel tee "${COCKPIT_INVENTORY}" > /dev/null << COCKPIT_INVENTORY_EOF
 ---
 all:
   children:
@@ -154,8 +175,8 @@ all:
           ansible_host: control.lab
   vars:
     ansible_user: rhel
-    ansible_password: ansible123!
-    ansible_become_password: ansible123!
+    ansible_password: ${SSH_PASSWORD}
+    ansible_become_password: ${SSH_PASSWORD}
     ansible_host_key_checking: false
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 COCKPIT_INVENTORY_EOF
@@ -168,7 +189,7 @@ fi
 echo "Updating apache playbook inventory..."
 APACHE_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_apache/inventory/inventory.yml"
 if [ -f "${APACHE_INVENTORY}" ]; then
-    sudo -u rhel tee "${APACHE_INVENTORY}" > /dev/null << 'APACHE_INVENTORY_EOF'
+    sudo -u rhel tee "${APACHE_INVENTORY}" > /dev/null << APACHE_INVENTORY_EOF
 ---
 all:
   children:
@@ -178,8 +199,8 @@ all:
           ansible_host: control.lab
   vars:
     ansible_user: rhel
-    ansible_password: ansible123!
-    ansible_become_password: ansible123!
+    ansible_password: ${SSH_PASSWORD}
+    ansible_become_password: ${SSH_PASSWORD}
     ansible_host_key_checking: false
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 APACHE_INVENTORY_EOF
@@ -192,7 +213,7 @@ fi
 echo "Updating postgresql/pgadmin playbook inventory..."
 PGSQL_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml"
 if [ -f "${PGSQL_INVENTORY}" ]; then
-    sudo -u rhel tee "${PGSQL_INVENTORY}" > /dev/null << 'PGSQL_INVENTORY_EOF'
+    sudo -u rhel tee "${PGSQL_INVENTORY}" > /dev/null << PGSQL_INVENTORY_EOF
 ---
 all:
   children:
@@ -202,8 +223,8 @@ all:
           ansible_host: devtools.lab
   vars:
     ansible_user: rhel
-    ansible_password: ansible123!
-    ansible_become_password: ansible123!
+    ansible_password: ${SSH_PASSWORD}
+    ansible_become_password: ${SSH_PASSWORD}
     ansible_host_key_checking: false
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 PGSQL_INVENTORY_EOF
@@ -273,6 +294,12 @@ sudo -u rhel git add .gitignore inventory.yml \
     playbooks/cloud/azure/ansible-navigator.yml
 sudo -u rhel git commit -m "Update inventory, playbooks, and ansible-navigator config for new lab platform" || true
 sudo -u rhel git push origin devel || true
+
+# Replace Jinja2 password placeholder in documentation files
+echo "Replacing password placeholder in documentation files..."
+find /home/rhel/${REPO_NAME}/www/modules/ /home/rhel/${REPO_NAME}/content/modules/ROOT/pages/ \
+    -type f \( -name "*.html" -o -name "*.adoc" \) \
+    -exec sed -i "s/{{ lab_password }}/${LAB_PASSWORD}/g" {} +
 
 # Pull execution environment image from Quay
 echo "Pulling execution environment image from Quay..."
@@ -559,7 +586,7 @@ ansible_host_key_checking: false
 track_slug: lightspeed-101
 
 controller_username: "admin"
-controller_password: "ansible123!"
+controller_password: "{{ lab_password }}"
 controller_hostname: "http://control.lab"
 controller_validate_certs: false
 
@@ -718,6 +745,9 @@ playground:
 #       project: "{{ lab.project.name }}"
 
 TRACK_VARS_EOF
+
+# Append lab_password to track vars (heredoc above is non-expanding)
+echo "lab_password: \"${LAB_PASSWORD}\"" >> /tmp/track_vars.yml
 
 # Set environment variables for Ansible execution
 export ANSIBLE_LOCALHOST_WARNING=False
