@@ -668,8 +668,7 @@ track_slug: lightspeed-101
 # student_password: "{{ vault_student_password }}"
 
 controller_username: "admin"
-lab_password: "${COMMON_PASSWORD}"
-controller_password: "{{ lab_password }}"
+controller_password: "${COMMON_PASSWORD}"
 controller_hostname: "https://localhost"
 controller_validate_certs: false
 student_username: "student"
