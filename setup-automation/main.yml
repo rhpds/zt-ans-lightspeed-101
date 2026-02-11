@@ -8,9 +8,12 @@
 
   vars:
     _image_password: "{{ image_password | default('ansible123!') }}"
-    _common_password: "{{ lookup('ansible.builtin.env', 'COMMON_PASSWORD') | default(lookup('ansible.builtin.env', 'BASTION_PASSWORD'), true) }}"
 
   tasks:
+  - name: Set common password from environment
+    ansible.builtin.set_fact:
+      _common_password: "{{ lookup('ansible.builtin.env', 'COMMON_PASSWORD') | default(lookup('ansible.builtin.env', 'BASTION_PASSWORD'), true) }}"
+
   - name: Add bastion host
     ansible.builtin.add_host:
       name: "{{ lookup('ansible.builtin.env', 'BASTION_HOST') }}"
