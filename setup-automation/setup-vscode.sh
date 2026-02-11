@@ -295,14 +295,14 @@ sudo -u rhel git add .gitignore inventory.yml \
 sudo -u rhel git commit -m "Update inventory, playbooks, and ansible-navigator config for new lab platform" || true
 sudo -u rhel git push origin devel || true
 
-# Set password in Antora attributes and rebuild documentation
-echo "Rebuilding documentation with lab password..."
+# Set password in Antora attributes for showroom build
+echo "Setting lab password in documentation..."
 sed -i "s/%common_password%/${COMMON_PASSWORD}/g" /home/rhel/${REPO_NAME}/content/antora.yml
-cd /home/rhel/${REPO_NAME}
-sudo -u rhel podman run --rm --platform linux/amd64 \
-    -v ".:/antora:z" \
-    docker.io/antora/antora default-site.yml
-cd -
+
+# Also replace directly in pre-built HTML and adoc as fallback
+find /home/rhel/${REPO_NAME}/www/modules/ /home/rhel/${REPO_NAME}/content/modules/ROOT/pages/ \
+    -type f \( -name "*.html" -o -name "*.adoc" \) \
+    -exec sed -i "s/%common_password%/${COMMON_PASSWORD}/g" {} +
 
 # Pull execution environment image from Quay
 echo "Pulling execution environment image from Quay..."
@@ -589,7 +589,7 @@ ansible_host_key_checking: false
 track_slug: lightspeed-101
 
 controller_username: "admin"
-controller_password: "REPLACED_BY_SETUP_SCRIPT"
+controller_password: ""
 controller_hostname: "http://control.lab"
 controller_validate_certs: false
 
