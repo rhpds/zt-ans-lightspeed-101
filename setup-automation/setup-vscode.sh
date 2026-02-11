@@ -10,6 +10,11 @@ echo "192.168.1.12 devtools.lab devtools" >> /etc/hosts
 # COMMON_PASSWORD is provided by the Ansible deployment (main.yml) via extra vars
 # VM password is changed by main.yml before this script runs
 
+# Remove RHUI repos and ensure Satellite manages repos/packages
+rm -f /etc/yum.repos.d/rhui*.repo
+sed -i 's/^manage_repos\s*=.*/manage_repos = 1/' /etc/rhsm/rhsm.conf
+sed -i 's/^package_profile_on_trans\s*=.*/package_profile_on_trans = 0/' /etc/rhsm/rhsm.conf
+
 # Set katello facts before satellite registration
 mkdir -p /etc/rhsm/facts
 INVENTORY_HOSTNAME=$(hostname -s)

@@ -13,6 +13,35 @@ echo "192.168.1.10 control.lab control" >> /etc/hosts
 # COMMON_PASSWORD is provided by the Ansible deployment (main.yml) via extra vars
 # VM password is changed by main.yml before this script runs
 
+# Remove RHUI repos and ensure Satellite manages repos/packages
+rm -f /etc/yum.repos.d/rhui*.repo
+sed -i 's/^manage_repos\s*=.*/manage_repos = 1/' /etc/rhsm/rhsm.conf
+sed -i 's/^package_profile_on_trans\s*=.*/package_profile_on_trans = 0/' /etc/rhsm/rhsm.conf
+
+# Set katello facts before satellite registration
+mkdir -p /etc/rhsm/facts
+INVENTORY_HOSTNAME=$(hostname -s)
+DATETIME=$(date -u +%Y%m%dT%H%M%SZ | tr '[:upper:]' '[:lower:]')
+if echo "${INVENTORY_HOSTNAME}" | grep -q "${GUID}"; then
+    SUBSCRIPTION_HOSTNAME="${INVENTORY_HOSTNAME}-${DATETIME}"
+else
+    SUBSCRIPTION_HOSTNAME="${INVENTORY_HOSTNAME}.${GUID}.internal-${DATETIME}"
+fi
+printf '{"network.fqdn": "%s"}\n' "${SUBSCRIPTION_HOSTNAME}" > /etc/rhsm/facts/katello.facts
+
+# Register with content source (Satellite or custom script)
+if [ -n "${SATELLITE_SCRIPT}" ]; then
+    echo "Executing custom satellite registration script..."
+    eval "${SATELLITE_SCRIPT}"
+elif [ -n "${SATELLITE_URL}" ]; then
+    curl -k -L https://${SATELLITE_URL}/pub/katello-server-ca.crt -o /etc/pki/ca-trust/source/anchors/${SATELLITE_URL}.ca.crt
+    update-ca-trust
+    rpm -Uhv https://${SATELLITE_URL}/pub/katello-ca-consumer-latest.noarch.rpm
+    subscription-manager register --org=${SATELLITE_ORG} --activationkey=${SATELLITE_ACTIVATIONKEY}
+else
+    echo "WARNING: No SATELLITE_SCRIPT or SATELLITE_URL defined, skipping registration"
+fi
+
 RHEL_SSH_DIR="/home/rhel/.ssh"
 RHEL_PRIVATE_KEY="$RHEL_SSH_DIR/id_rsa"
 RHEL_PUBLIC_KEY="$RHEL_SSH_DIR/id_rsa.pub"
