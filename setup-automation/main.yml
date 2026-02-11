@@ -25,10 +25,6 @@
       ansible_python_interpreter: /usr/libexec/platform-python
     loop:
       - vscode
-  - name: Generate unique passwords for this deployment
-    ansible.builtin.set_fact:
-      lab_password: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=8') }}Ab1!"
-      ssh_password: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=8') }}Zx2!"
 - name: Demo Playbook for the ansible-runner API
   hosts: all:!localhost
   gather_facts: false
@@ -72,10 +68,9 @@
     become: true
     register: r_result
     environment:
-      LAB_PASSWORD: "{{ hostvars['localhost']['lab_password'] }}"
-      SSH_PASSWORD: "{{ hostvars['localhost']['ssh_password'] }}"
-      GUID: "{{ lookup('ansible.builtin.env', 'GUID', default='') }}"
-      SATELLITE_SCRIPT: "{{ lookup('ansible.builtin.env', 'SATELLITE_SCRIPT', default='') }}"
+      COMMON_PASSWORD: "{{ common_password }}"
+      GUID: "{{ guid }}"
+      SATELLITE_SCRIPT: "{{ satellite_script | default('') }}"
       SATELLITE_URL: "{{ satellite_url }}"
       SATELLITE_ORG: "{{ satellite_org }}"
       SATELLITE_ACTIVATIONKEY: "{{ satellite_activationkey }}"

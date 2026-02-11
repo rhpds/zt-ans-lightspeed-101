@@ -7,8 +7,8 @@ echo "192.168.1.10 control.lab control" >> /etc/hosts
 echo "192.168.1.11 netbox.lab netbox" >> /etc/hosts
 echo "192.168.1.12 devtools.lab devtools" >> /etc/hosts
 
-# LAB_PASSWORD and SSH_PASSWORD are provided by the Ansible deployment (main.yml)
-echo "rhel:${SSH_PASSWORD}" | chpasswd
+# COMMON_PASSWORD is provided by the Ansible deployment (main.yml) via extra vars
+echo "rhel:${COMMON_PASSWORD}" | chpasswd
 
 # Set katello facts before satellite registration
 mkdir -p /etc/rhsm/facts
@@ -157,7 +157,7 @@ all:
           ansible_connection: local
   vars:
     ansible_user: rhel
-    ansible_become_password: ${SSH_PASSWORD}
+    ansible_become_password: ${COMMON_PASSWORD}
     ansible_host_key_checking: false
 INVENTORY_EOF
 
@@ -175,8 +175,8 @@ all:
           ansible_host: control.lab
   vars:
     ansible_user: rhel
-    ansible_password: ${SSH_PASSWORD}
-    ansible_become_password: ${SSH_PASSWORD}
+    ansible_password: ${COMMON_PASSWORD}
+    ansible_become_password: ${COMMON_PASSWORD}
     ansible_host_key_checking: false
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 COCKPIT_INVENTORY_EOF
@@ -199,8 +199,8 @@ all:
           ansible_host: control.lab
   vars:
     ansible_user: rhel
-    ansible_password: ${SSH_PASSWORD}
-    ansible_become_password: ${SSH_PASSWORD}
+    ansible_password: ${COMMON_PASSWORD}
+    ansible_become_password: ${COMMON_PASSWORD}
     ansible_host_key_checking: false
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 APACHE_INVENTORY_EOF
@@ -223,8 +223,8 @@ all:
           ansible_host: devtools.lab
   vars:
     ansible_user: rhel
-    ansible_password: ${SSH_PASSWORD}
-    ansible_become_password: ${SSH_PASSWORD}
+    ansible_password: ${COMMON_PASSWORD}
+    ansible_become_password: ${COMMON_PASSWORD}
     ansible_host_key_checking: false
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 PGSQL_INVENTORY_EOF
@@ -299,7 +299,7 @@ sudo -u rhel git push origin devel || true
 echo "Replacing password placeholder in documentation files..."
 find /home/rhel/${REPO_NAME}/www/modules/ /home/rhel/${REPO_NAME}/content/modules/ROOT/pages/ \
     -type f \( -name "*.html" -o -name "*.adoc" \) \
-    -exec sed -i "s/{{ lab_password }}/${LAB_PASSWORD}/g" {} +
+    -exec sed -i "s/{{ lab_password }}/${COMMON_PASSWORD}/g" {} +
 
 # Pull execution environment image from Quay
 echo "Pulling execution environment image from Quay..."
@@ -747,7 +747,7 @@ playground:
 TRACK_VARS_EOF
 
 # Append lab_password to track vars (heredoc above is non-expanding)
-echo "lab_password: \"${LAB_PASSWORD}\"" >> /tmp/track_vars.yml
+echo "lab_password: \"${COMMON_PASSWORD}\"" >> /tmp/track_vars.yml
 
 # Set environment variables for Ansible execution
 export ANSIBLE_LOCALHOST_WARNING=False
