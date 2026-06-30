@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v4
       - name: configure pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: setup node
         uses: actions/setup-node@v4
         with:
@@ -37,6 +39,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: www
+
   deploy:
     needs: build
     environment:
