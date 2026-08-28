@@ -10,7 +10,37 @@ nmcli connection add type ethernet con-name enp2s0 ifname enp2s0 ipv4.addresses 
 nmcli connection up enp2s0
 echo "192.168.1.10 control.lab control" >> /etc/hosts
 
+# COMMON_PASSWORD is provided by the Ansible deployment (main.yml) via extra vars
+# VM password is changed by main.yml before this script runs
 
+# Remove RHUI repos and ensure Satellite manages repos/packages
+rm -f /etc/yum.repos.d/rhui*.repo
+sed -i 's/^manage_repos\s*=.*/manage_repos = 1/' /etc/rhsm/rhsm.conf
+sed -i 's/^package_profile_on_trans\s*=.*/package_profile_on_trans = 0/' /etc/rhsm/rhsm.conf
+
+# Set katello facts before satellite registration
+mkdir -p /etc/rhsm/facts
+INVENTORY_HOSTNAME=$(hostname -s)
+DATETIME=$(date -u +%Y%m%dT%H%M%SZ | tr '[:upper:]' '[:lower:]')
+if echo "${INVENTORY_HOSTNAME}" | grep -q "${GUID}"; then
+    SUBSCRIPTION_HOSTNAME="${INVENTORY_HOSTNAME}-${DATETIME}"
+else
+    SUBSCRIPTION_HOSTNAME="${INVENTORY_HOSTNAME}.${GUID}.internal-${DATETIME}"
+fi
+printf '{"network.fqdn": "%s"}\n' "${SUBSCRIPTION_HOSTNAME}" > /etc/rhsm/facts/katello.facts
+
+# Register with content source (Satellite or custom script)
+if [ -n "${SATELLITE_SCRIPT}" ]; then
+    echo "Executing custom satellite registration script..."
+    eval "${SATELLITE_SCRIPT}"
+elif [ -n "${SATELLITE_URL}" ]; then
+    curl -k -L https://${SATELLITE_URL}/pub/katello-server-ca.crt -o /etc/pki/ca-trust/source/anchors/${SATELLITE_URL}.ca.crt
+    update-ca-trust
+    rpm -Uhv https://${SATELLITE_URL}/pub/katello-ca-consumer-latest.noarch.rpm
+    subscription-manager register --org=${SATELLITE_ORG} --activationkey=${SATELLITE_ACTIVATIONKEY}
+else
+    echo "WARNING: No SATELLITE_SCRIPT or SATELLITE_URL defined, skipping registration"
+fi
 
 RHEL_SSH_DIR="/home/rhel/.ssh"
 RHEL_PRIVATE_KEY="$RHEL_SSH_DIR/id_rsa"
@@ -102,7 +132,7 @@ MAX_RETRIES=30
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   # Use sshpass to connect to vscode node and check if setup is complete
   # The vscode node setup creates /home/rhel/.cloud_env and ~/acme_corp as final steps
-  if /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "test -f /home/rhel/.cloud_env && test -d /home/rhel/acme_corp" 2>/dev/null; then
+  if /usr/bin/sshpass -p "${COMMON_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "test -f /home/rhel/.cloud_env && test -d /home/rhel/acme_corp" 2>/dev/null; then
     echo "Vscode node setup detected as complete"
     break
   fi
@@ -117,7 +147,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
 done
 
 # Retrieve cloud environment variables from vscode node
-/usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env 2>/dev/null
+/usr/bin/sshpass -p "${COMMON_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env 2>/dev/null
 
 if [ -f /tmp/.cloud_env ]; then
   echo "Cloud environment variables retrieved from vscode node"
@@ -134,7 +164,7 @@ if [ -f /tmp/.cloud_env ]; then
 
   # Run AWS/Azure resource preparation playbooks on vscode node where credentials are available
   echo "Setting up AWS resources on vscode node..."
-  /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
+  /usr/bin/sshpass -p "${COMMON_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
 
   if [ $? -eq 0 ]; then
     echo "AWS resources created successfully"
@@ -143,14 +173,14 @@ if [ -f /tmp/.cloud_env ]; then
   fi
 
   echo "Setting up Azure resources on vscode node..."
-  /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/azure/prepare_azure_environment.yml -m stdout"
+  /usr/bin/sshpass -p "${COMMON_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/azure/prepare_azure_environment.yml -m stdout"
 
   if [ $? -eq 0 ]; then
     echo "Azure resources created successfully"
 
     # Fetch the generated Azure SSH public key from vscode node
     echo "Fetching Azure SSH public key from vscode node..."
-    /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat ~/acme_corp/playbooks/cloud/azure/files/azure_demo_ssh_key.pub" > /tmp/azure_demo_ssh_key.pub 2>/dev/null
+    /usr/bin/sshpass -p "${COMMON_PASSWORD}" ssh -o StrictHostKeyChecking=no rhel@vscode "cat ~/acme_corp/playbooks/cloud/azure/files/azure_demo_ssh_key.pub" > /tmp/azure_demo_ssh_key.pub 2>/dev/null
 
     if [ -f /tmp/azure_demo_ssh_key.pub ] && [ -s /tmp/azure_demo_ssh_key.pub ]; then
       echo "Azure SSH public key retrieved successfully"
@@ -255,8 +285,8 @@ tee /tmp/setup.yml > /dev/null << EOF
         variables:
           ansible_host: "control.lab"
           ansible_user: rhel
-          ansible_password: "ansible123!"
-          ansible_become_password: "ansible123!"
+          ansible_password: "${COMMON_PASSWORD}"
+          ansible_become_password: "${COMMON_PASSWORD}"
           ansible_python_interpreter: /usr/bin/python3
           ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
 
@@ -269,8 +299,8 @@ tee /tmp/setup.yml > /dev/null << EOF
         variables:
           ansible_host: "vscode.lab"
           ansible_user: rhel
-          ansible_password: "ansible123!"
-          ansible_become_password: "ansible123!"
+          ansible_password: "${COMMON_PASSWORD}"
+          ansible_become_password: "${COMMON_PASSWORD}"
           ansible_python_interpreter: /usr/bin/python3
           ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
 
@@ -667,7 +697,7 @@ track_slug: lightspeed-101
 # student_password: "{{ vault_student_password }}"
 
 controller_username: "admin"
-controller_password: "ansible123!"
+controller_password: "${COMMON_PASSWORD}"
 controller_hostname: "https://localhost"
 controller_validate_certs: false
 student_username: "student"
@@ -1116,3 +1146,4 @@ else
   echo "Controller setup failed - check /tmp/controller_setup.log for details"
   exit 1
 fi
+

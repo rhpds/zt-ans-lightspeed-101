@@ -687,7 +687,7 @@ Please UNCOMMENT the provider in the <code>required_provider</code> block.</p>
 <pre>provider "aap" {
   host     = "https://controller"
   username = "admin"
-  password = "ansible123!"
+  password = "%common_password%"
   insecure_skip_verify = true
 }</pre>
 </div>
@@ -736,7 +736,7 @@ Please remember, Terraform created the ec2 instance, and using the Terraform Pro
 <p>Click on the <code>Ansible Automation Platform</code> tab at the top of lab.</p>
 </div>
 <div class="paragraph">
-<p>Log in using the following credentials: <em>Login credentials:</em> <code>User:  admin</code>  <code>Password:  ansible123!</code></p>
+<p>Log in using the following credentials: <em>Login credentials:</em> <code>User:  admin</code>  <code>Password: %common_password%</code></p>
 </div>
 <div class="paragraph">
 <p>Expand the <code>Automation Execution</code> menu on the left.

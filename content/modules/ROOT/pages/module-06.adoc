@@ -41,7 +41,7 @@ All demo content is available in the link:https://github.com/ansible/ansible-lig
 **Playground Environment:** This is a free-form playground where you can explore all the Ansible Lightspeed features you've learned. All demo playbooks from previous modules are available here.
 
 **Credentials:**
-* **Ansible Automation Platform:** `admin` / `ansible123!`
+* **Ansible Automation Platform:** `admin` / `{lab_password}`
 * **Gitea:** `gitea` / `gitea`
 * **AWS/Azure credentials:** Available in the **AWS/Azure** tab
 ====
@@ -120,7 +120,7 @@ You can choose to run the `demo_*.yml` Playbook using either **automation contro
 +
     a. Click the **Ansible Automation Platform** tab at the top
 +
-    b. Log in with `admin` / `ansible123!` if prompted
+    b. Log in with `admin` / `{lab_password}` if prompted
 +
     c. Click **Resources** → **Templates** on the left sidebar
 +
